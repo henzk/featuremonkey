@@ -7,98 +7,83 @@ import imp
 import sys
 
 def delegate(to):
-    
     def original_wrapper(throwaway, *args, **kws):
         return to(*args, **kws)
-
     return original_wrapper
 
-class ClassCompositionRules(object):
+#class
 
-    def get_role_name(self, role):
-        return role.__class__.__name__
+def is_class_instance(obj):
+    return not inspect.isclass(obj) and not inspect.ismodule(obj)
 
-    def get_base_name(self, base):
-        return base.__name__
+def get_role_name(role):
+    #introduced roles are always instances
+    return role.__class__.__name__
 
-    def get_method(self, method, base):
+def get_base_name(base):
+    return "%s:%s" % (base.__name__, base.__class__.__name__)
+
+def get_method(method, base):
+    if is_class_instance(base):
+        return method.__get__(base, base.__class__)
+    else:
         return method
 
-    def introduce(self, role, attrname, attr, base):
-        target_attrname = attrname[len('introduce_'):]
-        if hasattr(base, target_attrname):
-            raise Exception, 'Cannot introduce "%s" from "%s" into "%s"! Attribute exists already!' % (
+def introduce(role, attrname, attr, base):
+    target_attrname = attrname[len('introduce_'):]
+    if hasattr(base, target_attrname):
+        raise Exception, 'Cannot introduce "%s" from "%s" into "%s"! Attribute exists already!' % (
+            target_attrname,
+            get_role_name(role),
+            get_base_name(base),
+        )
+    if callable(attr):
+        evaluated_attr = attr()
+        if not callable(evaluated_attr):
+            raise Exception, 'Cannot introduce "%s" from "%s" into "%s"! Method Introduction is not callable!' % (
                 target_attrname,
-                self.get_role_name(role),
-                self.get_base_name(base),
+                get_role_name(role),
+                get_base_name(base),
             )
-        if callable(attr):
-            evaluated_attr = attr()
-            if not callable(evaluated_attr):
-                raise Exception, 'Cannot introduce "%s" from "%s" into "%s"! Method Introduction is not callable!' % (
-                    target_attrname,
-                    self.get_role_name(role),
-                    self.get_base_name(base),
-                )
-            setattr(base, target_attrname, self.get_method(evaluated_attr, base))
-        else:
-            setattr(base, target_attrname, attr)
+        setattr(base, target_attrname, get_method(evaluated_attr, base))
+    else:
+        setattr(base, target_attrname, attr)
 
-    def refine(self, role, attrname, attr, base):
-        target_attrname = attrname[len('refine_'):]
-        if not hasattr(base, target_attrname):
-            raise Exception, 'Cannot refine "%s" of "%s" by "%s"! Attribute does not exist in original!' % (
-                target_attrname,
-                self.get_role_name(role),
-                self.get_base_name(base),
-            )
-        if callable(attr):
-            baseattr = getattr(base, target_attrname)
-            if callable(baseattr):
-                if inspect.isclass(base) or inspect.ismodule(base):
-                    setattr(base, target_attrname, self.get_method(attr(baseattr), base))
-                else:
-                    setattr(base, target_attrname, self.get_method(attr(delegate(baseattr)), base))
+def refine(role, attrname, attr, base):
+    target_attrname = attrname[len('refine_'):]
+    if not hasattr(base, target_attrname):
+        raise Exception, 'Cannot refine "%s" of "%s" by "%s"! Attribute does not exist in original!' % (
+            target_attrname,
+            self.get_role_name(role),
+            self.get_base_name(base),
+        )
+    if callable(attr):
+        baseattr = getattr(base, target_attrname)
+        if callable(baseattr):
+            if inspect.isclass(base) or inspect.ismodule(base):
+                setattr(base, target_attrname, get_method(attr(baseattr), base))
             else:
-                setattr(base, target_attrname, attr(baseattr))
+                setattr(base, target_attrname, get_method(attr(delegate(baseattr)), base))
         else:
-            setattr(base, target_attrname, attr)
+            setattr(base, target_attrname, attr(baseattr))
+    else:
+        setattr(base, target_attrname, attr)
 
-class InstanceCompositionRules(ClassCompositionRules):
-
-    def get_base_name(self, base):
-        return base.__class__.__name__
-
-    def get_method(self, method, base):
-        return method.__get__(base, base.__class__)
-
-def _compose_pair(role, base, rules):
+def _compose_pair(role, base):
     '''
     composes onto base by applying the role
     '''
     for attrname in dir(role):
         attr = getattr(role, attrname)
         if attrname.startswith('introduce_'):
-            rules.introduce(role, attrname, attr, base)
+            introduce(role, attrname, attr, base)
         elif attrname.startswith('refine_'):
-            rules.refine(role, attrname, attr, base)
-        elif attrname.startswith('deep_refine_'):
-            target_attrname = attrname[len('deep_refine_'):]
+            refine(role, attrname, attr, base)
+        elif attrname.startswith('child_'):
+            target_attrname = attrname[len('child_'):]
             refinement = attr()
             compose(refinement, getattr(base, target_attrname))
     return base
-
-def _compose(*things, **kws):
-    rules = kws.get('rules', False)
-    if not rules:
-        raise Exception, 'rules not given'
-    if not len(things):
-        raise Exception, 'nothing to compose'
-    if len(things) == 1:
-        return things[0]
-    else:
-        #recurse after applying last role to object
-        return _compose(*(list(things[:-2]) + [_compose_pair(things[-2], things[-1], rules)]), rules=rules)
 
 def compose(*things):
     '''
@@ -113,13 +98,13 @@ def compose(*things):
     
     compose(MyFST(), MyClass)
     '''
+    if not len(things):
+        raise Exception, 'nothing to compose'
     if len(things) == 1:
         return things[0]
-    base = things[-1]
-    if inspect.isclass(base) or inspect.ismodule(base):
-        return _compose(*things, rules=ClassCompositionRules())
     else:
-        return _compose(*things, rules=InstanceCompositionRules())
+        #recurse after applying last role to object
+        return compose(*(list(things[:-2]) + [_compose_pair(things[-2], things[-1])]))
 
 class LazyComposer(object):
     _to_compose = dict()
@@ -128,7 +113,6 @@ class LazyComposer(object):
     def add(cls, module_name, fsts):
         if not module_name in cls._to_compose:
             cls._to_compose[module_name] = []
-        
         cls._to_compose[module_name] += fsts
     
     def find_module(self, module_name, package_path):

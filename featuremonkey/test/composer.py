@@ -129,7 +129,6 @@ class TestModuleComposition(unittest.TestCase):
             def refine_func_in_module(self, original):
                 
                 def func_in_module(x, y):
-                
                     return original(x, y) * 2
                 
                 return func_in_module
@@ -171,7 +170,7 @@ class TestModuleComposition(unittest.TestCase):
         
         class ModuleDeepRefinement(object):
             
-            deep_refine_ClassInModule = ClassRefinement
+            child_ClassInModule = ClassRefinement
 
         self.assertEquals(False, hasattr(testmodule1.ClassInModule, 'a'))
         self.assertEquals(2, testmodule1.ClassInModule().plus(1, 1))
@@ -189,13 +188,14 @@ class TestModuleComposition(unittest.TestCase):
             def introduce_afunction(self):
             
                 def afunction(a, b):
+                    
                     return a * b
                 
                 return afunction
         
         class PackageDeepRefinement(object):
             
-            deep_refine_submodule = SubmoduleRefinement
+            child_submodule = SubmoduleRefinement
 
         self.assertEquals(False, hasattr(testpackage1.submodule, 'a'))
         compose(PackageDeepRefinement(), testpackage1)
