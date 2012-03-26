@@ -1,1 +1,2 @@
-from featuremonkey.composer import compose, compose_later
+from featuremonkey.composer import compose, compose_later,\
+     select, select_equation

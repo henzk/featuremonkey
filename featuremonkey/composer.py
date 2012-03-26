@@ -11,8 +11,6 @@ def delegate(to):
         return to(*args, **kws)
     return original_wrapper
 
-#class
-
 def is_class_instance(obj):
     return not inspect.isclass(obj) and not inspect.ismodule(obj)
 
@@ -127,9 +125,41 @@ class LazyComposer(object):
         return module
 
 def compose_later(*things):
+    """
+    register list of things for composition using compose()
+    
+    compose_later takes a list of fsts. The last element specifies the base module as string
+    things are composed directly after the base module is imported by application code
+    """
     if len(things) == 1:
         return things[0]
     module_name = things[-1]
     LazyComposer.add(module_name, things[:-1])
 
+#register import hook
 sys.meta_path.append(LazyComposer())
+
+def select(*features):
+    """
+    selects the features given as string
+    e.g
+    passing 'hello' and 'world' will result in imports of 'hello' and 'world'.
+    Then, if possible 'hello.feature' and 'world.feature' are imported and select is called
+    in each feature module.
+    """
+    for feature_name in features:
+        feature_module = importlib.import_module(feature_name)
+        #if available, import feature.py and select the feature
+        try:
+            feature_spec_module = importlib.import_module(feature_name + '.feature')
+            feature_spec_module.select()
+        except ImportError:
+            pass
+
+def select_equation(filename):
+    features = []
+    for line in open(filename):
+        line = line.strip()
+        if line and not line.startswith('#'):
+            features.append(line)
+    select(*features)
