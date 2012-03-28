@@ -113,8 +113,8 @@ class LazyComposer(object):
             cls._to_compose[module_name] = []
         cls._to_compose[module_name] += fsts
     
-    def find_module(self, module_name, package_path):
-        if module_name in self._to_compose:
+    def find_module(self, fullname, path=None):
+        if fullname in self._to_compose:
             return self
     
     def load_module(self, module_name):
