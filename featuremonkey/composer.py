@@ -15,7 +15,8 @@ def is_class_instance(obj):
     return not inspect.isclass(obj) and not inspect.ismodule(obj)
 
 def get_role_name(role):
-    #introduced roles are always instances
+    if inspect.ismodule(role):
+        return role.__name__
     return role.__class__.__name__
 
 def get_base_name(base):
@@ -52,8 +53,8 @@ def refine(role, attrname, attr, base):
     if not hasattr(base, target_attrname):
         raise Exception, 'Cannot refine "%s" of "%s" by "%s"! Attribute does not exist in original!' % (
             target_attrname,
-            self.get_role_name(role),
-            self.get_base_name(base),
+            get_base_name(base),
+            get_role_name(role),
         )
     if callable(attr):
         baseattr = getattr(base, target_attrname)
