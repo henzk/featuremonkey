@@ -17,4 +17,4 @@ Installation
 There is currently no documentation - until there is, have a look at ``featuremonkey/test/composer.py``.
 
 
-License: MIT
+License: MIT (see LICENSE)
