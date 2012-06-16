@@ -1,5 +1,10 @@
 #! /usr/bin/env python
-DEPS = ['importlib']
+DEPS = []
+try:
+    import importlib
+except ImportError:
+    DEPS += ['importlib']
+
 try:
     from setuptools import setup
     extra = {
