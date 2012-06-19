@@ -1,8 +1,16 @@
+from __future__ import absolute_import
 from featuremonkey import compose, compose_later
 from featuremonkey.test.mock import composer_mocks as mocks
 from featuremonkey.test.mock import testmodule1, testpackage1
 import unittest
 import sys
+
+try:
+    #python3
+    from imp import reload
+except ImportError:
+    #python2
+    pass
 
 class TestObjectComposition(unittest.TestCase):
 
