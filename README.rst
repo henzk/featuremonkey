@@ -14,7 +14,9 @@ Installation
 - run the tests: ``test_featuremonkey``
 
 
-There is currently no documentation - until there is, have a look at ``featuremonkey/test/composer.py``.
+The documentation is incomplete right now (work in progress): https://featuremonkey.readthedocs.org/
+
+For more details, have a look at ``featuremonkey/test/composer.py``.
 
 
 License: MIT (see LICENSE)
