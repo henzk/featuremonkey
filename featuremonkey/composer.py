@@ -132,6 +132,7 @@ class LazyComposer(object):
     def load_module(self, module_name):
         fsts = self._to_compose.pop(module_name)
         module = importlib.import_module(module_name)
+        fsts.reverse()
         fsts.append(module)
         compose(*fsts)
         return module
