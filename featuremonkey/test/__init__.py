@@ -11,5 +11,5 @@ def suite():
 
 
 def run_all():
-    
-    unittest.TextTestRunner(verbosity=2).run(suite())
+
+    return unittest.TextTestRunner(verbosity=2).run(suite())
