@@ -149,6 +149,8 @@ def compose_later(*things):
     if len(things) == 1:
         return things[0]
     module_name = things[-1]
+    if module_name in sys.modules:
+        raise Exception('compose_later call after module has been imported: ' + module_name)
     LazyComposer.add(module_name, things[:-1])
 
 #register import hook
