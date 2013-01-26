@@ -1,0 +1,145 @@
+************************
+featuremonkey Reference
+************************
+
+Feature Structure Trees
+=========================
+
+featuremonkey recognizes python packages, modules, classes, functions and methods as being part of the FST.
+
+
+FST Declaration
+=================
+
+FSTs are declared as modules or classes depending on the preference of the user. modules and classes can be mixed arbitrarily.
+
+.. note::
+
+    when using classes, please make sure to use new style classes. Old style classes are completely unsupported by featuremonkey - because they are old and are removed from the python language with 3.0. To create a new style class, simply inherit from ``object`` or another new style class explicitely.
+
+FSTs specify introductions and refinements of structures contained in the global interpreter state.
+This is done by defining specially crafted names inside the FST module/class.
+
+FST Introduction
+-------------------
+
+Introductions are useful to add new attributes to existing packages/modules/classes/instances.
+
+An introduction is specified by creating a name starting with ``introduce_`` followed by the name to introduce directly inside the FST module/class.
+The attribute value will be used like so to derive the value to introduce:
+
+- If the FST attribute value is not callable, it is used as the value to introduce without further processing.
+- If it is a callable, it is called to obtain the value to introduce. The callable will be called without arguments and must return this value.
+
+Example::
+
+    class TestFST1(object):
+        #introduce name ``a`` with value ``7``
+        introduce_a = 7
+
+        #introduce name ``b`` with value ``6``
+        def introduce_b(self):
+            return 6
+
+        #introduce method ``foo`` that returns ``42`` when called
+        def introduce_foo(self): 
+            def foo(self):
+                return 42
+            
+            return foo
+
+
+.. warning::
+
+    Names can only be introduced if they do not already exist in the current interpreter state.
+    Otherwise ``compose`` will raise a ``CompositionError``. If that happens, the product may be in an
+    inconsistent state. Consider restarting the whole product!
+    
+
+FST Refinement
+-------------------
+
+
+Refinements are used to refine existing attributes of packages/modules/classes/instances.
+
+An introduction is specified much like an introduction.
+It is done by creating a name starting with ``refine_`` followed by the name to refine directly inside the FST module/class.
+The attribute value will be used like so to derive the value to introduce:
+
+- If the FST attribute value is not callable, it is used as the refined value without further processing. **This is a replacement**
+- If it is a callable e.g. a method, it is called to obtain the refined value. The callable will be called with the single argument ``original`` and must return this value. ``original`` is a reference to the current implementation of the name that is to be refined. It is analogous to ``super`` in OOP.
+
+Example::
+
+    class TestFST1(object):
+        #refine name ``a`` with value ``7``
+        refine_a = 7
+
+        #refine name ``b`` with value ``6``
+        def introduce_b(self, original):
+            return 6
+
+        #refine method ``foo`` to make it return double the value of before.
+        def refine_foo(self, original): 
+            def foo(self):
+                return orginal(self) * 2
+            
+            return foo
+
+
+.. note::
+
+    when calling ``original`` in a method refinement(for both classes and instances), you need to explicitely pass ``self`` as first parameter to ``original``.
+
+
+.. warning::
+
+    Names can only be refined if they exist in the current interpreter state.
+    Otherwise ``compose`` will raise a ``CompositionError``. If that happens, the product may be in an
+    inconsistent state. Consider restarting the whole product!
+
+
+FST nesting
+===================
+
+FSTs can be nested to refine nested structures of the interpreter state.
+To create a child FST node, create a name starting with ``child_`` followed by the nested name.
+The value must be either a FST class or instance or a FST module.
+As an example, consider a refinement to the ``os`` module.
+We want to introduce ``os.foo`` and also refine ``os.path.join``.
+We could do this by composing a FST on ``os`` to introduce ``foo`` and then composing another FST on ``os.path`` that refines ``join``.
+Alternatively, we can use FST nesting and specify it as follows::
+
+    class os(object):
+        introduce_foo = 123
+        class child_path(object):
+            def refine_join(self, original):
+                def join(*elems):
+                    return original(elems)
+                return join
+
+
+Got it?
+
+
+FST Composition
+===================
+
+.. autofunction:: featuremonkey.compose
+
+
+.. autofunction:: featuremonkey.compose_later
+
+
+
+Feature Layout
+===================
+
+
+Product Selection
+===================
+
+.. autofunction:: featuremonkey.select
+
+.. autofunction:: featuremonkey.select_equation
+
