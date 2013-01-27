@@ -1,4 +1,7 @@
 #! /usr/bin/env python
+
+import os
+
 DEPS = []
 try:
     import importlib
@@ -16,11 +19,17 @@ except ImportError:
         'dependencies' : DEPS
     }
 
+def read(fname):
+    try:
+        return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    except IOError:
+        return ''
+
 setup(
     name='featuremonkey',
     version='0.1',
     description='FOP for Python',
-    long_description='feature oriented composition of python using monkeypatching',
+    long_description=read('README.rst'),
     url='http://github.com/henzk/featuremonkey',
     author='Hendrik Speidel',
     author_email='hendrik@schnapptack.de',
