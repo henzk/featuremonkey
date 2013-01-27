@@ -64,6 +64,25 @@ featuremonkey Reference
     
     reference
 
+
+***************************************
+Changelog
+***************************************
+
+
+**0.2**
+
+
+- first release on PYPI
+- composer is now class based
+- fixes compose_later composition order
+- initial docs
+
+**0.1**
+
+- initial version
+
+
 *********************
 Indices and tables
 *********************
