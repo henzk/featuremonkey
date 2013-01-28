@@ -6,6 +6,7 @@ import inspect
 import importlib
 import sys
 
+class CompositionError(Exception): pass
 
 def _delegate(to):
 
@@ -69,7 +70,7 @@ class Composer(object):
     def _introduce(self, role, attrname, attr, base):
         target_attrname = attrname[len('introduce_'):]
         if hasattr(base, target_attrname):
-            raise Exception('Cannot introduce "%s" from "%s" into "%s"! Attribute exists already!' % (
+            raise CompositionError('Cannot introduce "%s" from "%s" into "%s"! Attribute exists already!' % (
                 target_attrname,
                 _get_role_name(role),
                 _get_base_name(base),
@@ -77,7 +78,7 @@ class Composer(object):
         if callable(attr):
             evaluated_attr = attr()
             if not callable(evaluated_attr):
-                raise Exception('Cannot introduce "%s" from "%s" into "%s"! Method Introduction is not callable!' % (
+                raise CompositionError('Cannot introduce "%s" from "%s" into "%s"! Method Introduction is not callable!' % (
                     target_attrname,
                     _get_role_name(role),
                     _get_base_name(base),
@@ -90,7 +91,7 @@ class Composer(object):
     def _refine(self, role, attrname, attr, base):
         target_attrname = attrname[len('refine_'):]
         if not hasattr(base, target_attrname):
-            raise Exception('Cannot refine "%s" of "%s" by "%s"! Attribute does not exist in original!' % (
+            raise CompositionError('Cannot refine "%s" of "%s" by "%s"! Attribute does not exist in original!' % (
                 target_attrname,
                 _get_base_name(base),
                 _get_role_name(role),
@@ -139,7 +140,7 @@ class Composer(object):
         compose(MyFST(), MyClass)
         '''
         if not len(things):
-            raise Exception('nothing to compose')
+            raise CompositionError('nothing to compose')
         if len(things) == 1:
             return things[0]
         else:
@@ -160,7 +161,7 @@ class Composer(object):
             return things[0]
         module_name = things[-1]
         if module_name in sys.modules:
-            raise Exception('compose_later call after module has been imported: ' + module_name)
+            raise CompositionError('compose_later call after module has been imported: ' + module_name)
         LazyComposer.add(module_name, things[:-1])
 
 
