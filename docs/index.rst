@@ -2,23 +2,37 @@
 Welcome to featuremonkey's documentation!
 ##########################################
 
-    featuremonkey is a tool to ease *feature oriented programming (FOP)* in python.
+    ``featuremonkey`` is a tool to support *feature oriented programming (FOP)* in python.
 
 
-featuremonkey is a tiny library to enable FOP(feature oriented programming) in Python.
-Feature composition is realized using monkeypatching i.e. structures are dynamically redefined at runtime.
-This way featuremonkey gives you nice stacktraces if something should go wrong - it propably will.
-However, this dynamic approach is not without its drawbacks: first, it creates some overhead at runtime and second due to the dynamic nature and the non-existant type-system some error classes that are detected before running the program with featurehouse emerge at runtime later.
+``featuremonkey`` is a tiny library to enable feature oriented programming (FOP) in Python.
+Feature oriented software development(FOSD) is a methodology to build and maintain software product lines.
+Products are composed automatically from a set of feature modules and may share a set of features and differ in others.
 
-``featuremonkey`` uses the concept of FST superimposition to compose products out of a list of features.
-In contrast to other feature oriented composition approaches like ``featureHouse``, ``featuremonkey`` operates at runtime.
+There are multiple definitions of what a feature really is. Here, we use the definition of Apel et al.:
 
-Now, suppose we wanted to add functionality to that program without touching it.
-Therefore, we write the additions and modifications to the base program 
-in form of an FST.
+    A feature is a structure that extends and modifies the structure of
+    a given program in order to satisfy a stakeholder’s requirement,
+    to implement and encapsulate a design decision,
+    and to offer a configuration option [ALMK]_ .
 
-The documentation begins with some background information
-and then dives into feature oriented python programming using featuremonkey.
+When trying to modularize software-systems to acheive reusability, components come to mind.
+However, there is a problem with that: large components are very specific which limits reuse;
+many small components often make it necessary to write larger amounts of glue code to integrate them.
+
+So components are nice --- but it feels like there is something missing.
+
+Features provide an additional dimension of modularity by allowing the developer to encapsulate
+code related to a specific concern that is scattered across multiple locations of the codebase into feature modules.
+Products can then be composed automatically by selecting a set of feature modules.
+
+Common approaches to FOSD are the use of generative techniques 
+i.e. composing a product`s code and other artefacts as part of the build process,
+the use of specialized programming languages with feature support,
+or making features explicit using IDE support.
+
+``featuremonkey`` implements feature composition by using monkeypatching i.e. structures are dynamically redefined at runtime.
+
 
 *******************************************
 Fun facts on featuremonkey for FOSD people
@@ -27,14 +41,13 @@ Fun facts on featuremonkey for FOSD people
 
 - features are bound at startup time or later (dynamic feature binding)
 - however, feature binding is not fully dynamic as there is no way to unbind a feature once it has been bound.
-- featuremonkey uses delegation layers that are injected at runtime to compose the features.
+- featuremonkey uses delegation layers that are injected at runtime when composing the features.
 - featuremonkey composes objects(instances that is)
 - packages, modules, classes, functions, methods and so on are all objects in python ... therefore, featuremonkey can compose those as well.
 - featuremonkey uses monkeypatching to bind features: it adapts the interpreter state.
 
 
-
-The basic featuremonkey operation is ``compose``. It superimposes FST modules/classes onto the current interpreter state.
+The basic operation  offered by ``featuremonkey`` is ``compose``.
 
 ***************************************
 Feature Oriented Software Development
@@ -90,4 +103,12 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+.. [ALMK] S. Apel, C. Lengauer, B. Möller, and C. Kästner.
+    An Algebra for Features and Feature Composition.
+    In Proceedings of the International Conference on 
+    Algebraic Methodology and Software Technology (AMAST),
+    volume 5140 of Lecture Notes in Computer Science,
+    pages 36–50. Springer-Verlag, 2008.
 
