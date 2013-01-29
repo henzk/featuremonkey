@@ -144,10 +144,15 @@ class Composer(object):
         if not len(things):
             raise CompositionError('nothing to compose')
         if len(things) == 1:
+            #composing one element is simple
             return things[0]
         else:
             #recurse after applying last role to object
-            return compose(*(list(things[:-2]) + [self._compose_pair(things[-2], things[-1])]))
+            return compose(*(
+                list(things[:-2]) #all but the last two 
+                #plus the composition of the last two
+                + [self._compose_pair(things[-2], things[-1])]
+            ))
 
 
     def compose_later(self, *things):
@@ -163,7 +168,10 @@ class Composer(object):
             return things[0]
         module_name = things[-1]
         if module_name in sys.modules:
-            raise CompositionError('compose_later call after module has been imported: ' + module_name)
+            raise CompositionError(
+                'compose_later call after module has been imported: '
+                 + module_name
+            )
         LazyComposer.add(module_name, things[:-1])
 
 
