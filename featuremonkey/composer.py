@@ -5,11 +5,13 @@ from __future__ import absolute_import
 import inspect
 import importlib
 import sys
+from functools import wraps
 
 class CompositionError(Exception): pass
 
-def _delegate(to):
 
+def _delegate(to):
+    @wraps(to)
     def original_wrapper(throwaway, *args, **kws):
         return to(*args, **kws)
 
