@@ -189,10 +189,25 @@ class Composer(object):
 
 
     def select_equation(self, filename):
+        """
+        select features from equation file
+
+        format: one feature per line; comments start with ``#``
+
+        Example::
+
+            #this is a comment
+            basefeature
+            #empty lines are ignored
+
+            myfeature
+            anotherfeature
+
+        """
         features = []
         for line in open(filename):
-            line = line.strip()
-            if line and not line.startswith('#'):
+            line = line.split('#')[0].strip()
+            if line:
                 features.append(line)
         self.select(*features)
 
