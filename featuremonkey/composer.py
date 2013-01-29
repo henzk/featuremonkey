@@ -204,7 +204,16 @@ class Composer(object):
                 feature_spec_module = importlib.import_module(
                     feature_name + '.feature'
                 )
-                feature_spec_module.select()
+                args, varargs, keywords, defaults = inspect.getargspec(
+                    feature_spec_module.select
+                )
+                if varargs or keywords or defaults or len(args) != 1:
+                    raise CompositionError(
+                        'invalid signature: %s.feature.select must '
+                        'have the signature select(composer)'
+                    )
+                #call the feature`s select function
+                feature_spec_module.select(self)
             except ImportError:
                 pass
 
@@ -232,7 +241,7 @@ class Composer(object):
                 features.append(line)
         self.select(*features)
 
-
+#setup default composer and provide access to its methods at the module level
 _default_composer = Composer()
 select = _default_composer.select
 select_equation = _default_composer.select_equation
