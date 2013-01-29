@@ -69,35 +69,42 @@ sys.meta_path.append(LazyComposer())
 class Composer(object):
 
 
-    def _introduce(self, role, attrname, attr, base):
-        target_attrname = attrname[len('introduce_'):]
+    def _introduce(self, role, target_attrname, attr, base):
         if hasattr(base, target_attrname):
-            raise CompositionError('Cannot introduce "%s" from "%s" into "%s"! Attribute exists already!' % (
-                target_attrname,
-                _get_role_name(role),
-                _get_base_name(base),
-            ))
-        if callable(attr):
-            evaluated_attr = attr()
-            if not callable(evaluated_attr):
-                raise CompositionError('Cannot introduce "%s" from "%s" into "%s"! Method Introduction is not callable!' % (
+            raise CompositionError(
+                'Cannot introduce "%s" from "%s" into "%s"!'
+                ' Attribute exists already!' % (
                     target_attrname,
                     _get_role_name(role),
                     _get_base_name(base),
-                ))
+                )
+            )
+        if callable(attr):
+            evaluated_attr = attr()
+            if not callable(evaluated_attr):
+                raise CompositionError(
+                    'Cannot introduce "%s" from "%s" into "%s"!'
+                    ' Method Introduction is not callable!' % (
+                        target_attrname,
+                        _get_role_name(role),
+                        _get_base_name(base),
+                    )
+                )
             setattr(base, target_attrname, _get_method(evaluated_attr, base))
         else:
             setattr(base, target_attrname, attr)
 
 
-    def _refine(self, role, attrname, attr, base):
-        target_attrname = attrname[len('refine_'):]
+    def _refine(self, role, target_attrname, attr, base):
         if not hasattr(base, target_attrname):
-            raise CompositionError('Cannot refine "%s" of "%s" by "%s"! Attribute does not exist in original!' % (
-                target_attrname,
-                _get_base_name(base),
-                _get_role_name(role),
-            ))
+            raise CompositionError(
+                'Cannot refine "%s" of "%s" by "%s"!'
+                ' Attribute does not exist in original!' % (
+                    target_attrname,
+                    _get_base_name(base),
+                    _get_role_name(role),
+                )
+            )
         if callable(attr):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
@@ -111,20 +118,26 @@ class Composer(object):
             setattr(base, target_attrname, attr)
 
 
+    def _apply_operation(self, role, base, attr, attrname):
+        if attrname.startswith('introduce_'):
+            target_attrname = attrname[len('introduce_'):]
+            self._introduce(role, target_attrname, attr, base)
+        elif attrname.startswith('refine_'):
+            target_attrname = attrname[len('refine_'):]
+            self._refine(role, target_attrname, attr, base)
+        elif attrname.startswith('child_'):
+            target_attrname = attrname[len('child_'):]
+            refinement = attr()
+            self.compose(refinement, getattr(base, target_attrname))
+
     def _compose_pair(self, role, base):
         '''
         composes onto base by applying the role
         '''
         for attrname in dir(role):
             attr = getattr(role, attrname)
-            if attrname.startswith('introduce_'):
-                self._introduce(role, attrname, attr, base)
-            elif attrname.startswith('refine_'):
-                self._refine(role, attrname, attr, base)
-            elif attrname.startswith('child_'):
-                target_attrname = attrname[len('child_'):]
-                refinement = attr()
-                self.compose(refinement, getattr(base, target_attrname))
+            self._apply_operation(role, base, attr, attrname)
+
         return base
 
 
