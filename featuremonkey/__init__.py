@@ -1,8 +1,13 @@
 from __future__ import absolute_import
 from featuremonkey.composer import Composer
+from featuremonkey.importhooks import ImportGuardHook
 
 __version__ = '0.2.1'
 __author__ = 'Hendrik Speidel <hendrik@schnapptack.de>'
+
+add_import_guard = ImportGuardHook.add
+remove_import_guard = ImportGuardHook.remove
+
 #setup default composer and provide access to its methods at the module level
 _default_composer = Composer()
 select = _default_composer.select

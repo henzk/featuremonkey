@@ -79,3 +79,83 @@ class LazyComposerHook(ImportHookBase):
         if not self._to_compose:
             self._uninstall()
         return module
+
+
+class ImportGuard(ImportError): pass
+
+class ImportGuardHook(ImportHookBase):
+    """
+    Import Hook to implement import guards.
+
+    In Python imports can have side-effects and import order may be relevant.
+    When using featuremonkey, it is important to compose the product before
+    making references to it. Otherwise, you could end up with a reference
+    to a module/class/object that has only been composed partially.
+    This may introduce subtle bugs that are hard to debug.
+
+    Using an import guard, you can enforce that a module cannot be imported until
+    the import guard on that module is dropped again.
+    Importing a guarded module results in an ImportGuard exception being thrown.
+    Usually, you don`t want to catch these:
+    better fail during the composition phase than continuing to run a miscomposed
+    program.
+    """
+    _guards = dict()
+    _num_entries = 0
+
+    @classmethod
+    def _insert_hook(cls):
+        #the guard hook needs to be first
+        sys.meta_path.insert(0, cls._hook)
+
+    @classmethod
+    def add(cls, module_name, msg=''):
+        '''
+        from now on until the guard is dropped again
+        disallow imports of the module given by ``module_name``.
+
+        If the module is imported while the guard is in place
+        an ``ImportGuard`` is raised. An additional message on why
+        the module cannot be imported can optionally be specified
+        using the parameter ``msg``.
+
+        If multiple guards are placed on the same module, all these guards
+        have to be dropped before the module can be imported again.
+        '''
+        if module_name in sys.modules:
+            raise ImportGuard(
+                'Module to guard has already been imported: '
+                + module_name
+            )
+        cls._guards.setdefault(module_name,  [])
+        cls._guards[module_name].append(msg)
+        cls._num_entries += 1
+        cls._install()
+
+    @classmethod
+    def remove(cls, module_name):
+        """
+        drop a previously created guard on ``module_name``
+        if the module is not guarded, then this is a no-op.
+        """
+        module_guards = cls._guards.get(module_name, False)
+        if module_guards:
+            module_guards.pop()
+            cls._num_entries -= 1
+            if cls._num_entries < 1:
+                if cls._num_entries < 0:
+                    raise Exception(
+                        'Bug: ImportGuardHook._num_entries became negative!'
+                    )
+                cls._uninstall()
+
+    def find_module(self, fullname, path=None):
+        if self._guards.get(fullname, False):
+            return self
+
+    def load_module(self, module_name):
+        raise ImportGuard(
+            'Import while import guard in place: '
+            #msg of latest guard that has been placed on module
+            + (self._guards[module_name][-1] or module_name)
+        )
