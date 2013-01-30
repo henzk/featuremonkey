@@ -6,65 +6,11 @@ import inspect
 import importlib
 import sys
 from functools import wraps
+from .importhooks import LazyComposerHook
+from .helpers import (_delegate, _is_class_instance, _get_role_name,
+    _get_base_name, _get_method)
 
 class CompositionError(Exception): pass
-
-
-def _delegate(to):
-    @wraps(to)
-    def original_wrapper(throwaway, *args, **kws):
-        return to(*args, **kws)
-
-    return original_wrapper
-
-
-def _is_class_instance(obj):
-    return not inspect.isclass(obj) and not inspect.ismodule(obj)
-
-
-def _get_role_name(role):
-    if inspect.ismodule(role):
-        return role.__name__
-    return role.__class__.__name__
-
-
-def _get_base_name(base):
-    return "%s:%s" % (base.__name__, base.__class__.__name__)
-
-
-def _get_method(method, base):
-    if _is_class_instance(base):
-        return method.__get__(base, base.__class__)
-    else:
-        return method
-
-class LazyComposer(object):
-    _to_compose = dict()
-
-
-    @classmethod
-    def add(cls, module_name, fsts):
-        if not module_name in cls._to_compose:
-            cls._to_compose[module_name] = []
-        cls._to_compose[module_name] += fsts
-
-
-    def find_module(self, fullname, path=None):
-        if fullname in self._to_compose:
-            return self
-
-
-    def load_module(self, module_name):
-        fsts = self._to_compose.pop(module_name)
-        module = importlib.import_module(module_name)
-        fsts.reverse()
-        fsts.append(module)
-        compose(*fsts)
-        return module
-
-
-#register import hook
-sys.meta_path.append(LazyComposer())
 
 class Composer(object):
 
@@ -161,7 +107,7 @@ class Composer(object):
             return things[0]
         else:
             #recurse after applying last role to object
-            return compose(*(
+            return self.compose(*(
                 list(things[:-2]) #all but the last two 
                 #plus the composition of the last two
                 + [self._compose_pair(things[-2], things[-1])]
@@ -185,7 +131,7 @@ class Composer(object):
                 'compose_later call after module has been imported: '
                  + module_name
             )
-        LazyComposer.add(module_name, things[:-1])
+        LazyComposerHook.add(module_name, things[:-1], self)
 
 
     def select(self, *features):
@@ -240,10 +186,3 @@ class Composer(object):
             if line:
                 features.append(line)
         self.select(*features)
-
-#setup default composer and provide access to its methods at the module level
-_default_composer = Composer()
-select = _default_composer.select
-select_equation = _default_composer.select_equation
-compose = _default_composer.compose
-compose_later = _default_composer.compose_later
