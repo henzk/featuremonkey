@@ -82,6 +82,16 @@ featuremonkey Reference
 Changelog
 ***************************************
 
+**HEAD**
+
+- added import guards
+- split into multiple files
+- **backwards incompatible change:** signatures of ``feature.select`` functions need to be changed from ``feature.select`` to ``feature.select(composer)``.
+
+**0.2.1**
+
+- more docs
+- raises ``CompositionError`` consistently
 
 **0.2**
 

@@ -143,3 +143,32 @@ Product Selection
 
 .. autofunction:: featuremonkey.select_equation
 
+
+Import Guards
+=================
+
+.. autoclass:: featuremonkey.importhooks.ImportGuardHook
+
+.. autofunction:: featuremonkey.add_import_guard(module_name, msg='')
+
+.. autofunction:: featuremonkey.remove_import_guard(module_name)
+
+
+Example::
+
+    >>> import featuremonkey
+    >>> featuremonkey.add_import_guard('django')
+    >>> import django
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "featuremonkey/importhooks.py", line 160, in load_module
+        + (self._guards[module_name][-1] or module_name)
+    featuremonkey.importhooks.ImportGuard: Import while import guard in place: django
+    >>> featuremonkey.remove_import_guard('django')
+    >>> import django
+    >>> 
+
+
+First an import guard is created for the package ``django``.
+Then, we try to import it and an ``ImportGuard`` is raised.
+After we remove the guard again, we can import the package without an error.

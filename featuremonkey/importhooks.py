@@ -99,6 +99,10 @@ class ImportGuardHook(ImportHookBase):
     Usually, you don`t want to catch these:
     better fail during the composition phase than continuing to run a miscomposed
     program.
+
+    The existance of the import hook is considered an implementation detail.
+    The public API to import guards are ``featuremonkey.add_import_guard``
+    and ``featuremonkey.remove_import_guard``.
     """
     _guards = dict()
     _num_entries = 0
@@ -111,7 +115,7 @@ class ImportGuardHook(ImportHookBase):
     @classmethod
     def add(cls, module_name, msg=''):
         '''
-        from now on until the guard is dropped again
+        Until the guard is dropped again,
         disallow imports of the module given by ``module_name``.
 
         If the module is imported while the guard is in place
