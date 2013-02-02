@@ -156,7 +156,9 @@ class Composer(object):
                 if varargs or keywords or defaults or len(args) != 1:
                     raise CompositionError(
                         'invalid signature: %s.feature.select must '
-                        'have the signature select(composer)'
+                        'have the signature select(composer)' % (
+                            feature_name
+                        )
                     )
                 #call the feature`s select function
                 feature_spec_module.select(self)
