@@ -10,6 +10,30 @@ from .importhooks import LazyComposerHook
 from .helpers import (_delegate, _is_class_instance, _get_role_name,
     _get_base_name, _get_method)
 
+def get_features_from_equation_file(filename):
+    '''
+    returns list of feature names read from equation file given
+    by ``filename``.
+
+    format: one feature per line; comments start with ``#``
+
+    Example::
+
+        #this is a comment
+        basefeature
+        #empty lines are ignored
+
+        myfeature
+        anotherfeature
+
+    '''
+    features = []
+    for line in open(filename):
+        line = line.split('#')[0].strip()
+        if line:
+            features.append(line)
+    return features
+
 class CompositionError(Exception): pass
 
 class Composer(object):
@@ -182,9 +206,5 @@ class Composer(object):
             anotherfeature
 
         """
-        features = []
-        for line in open(filename):
-            line = line.split('#')[0].strip()
-            if line:
-                features.append(line)
+        features = get_features_from_equation_file(filename)
         self.select(*features)
