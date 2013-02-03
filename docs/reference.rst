@@ -172,3 +172,8 @@ Example::
 First an import guard is created for the package ``django``.
 Then, we try to import it and an ``ImportGuard`` is raised.
 After we remove the guard again, we can import the package without an error.
+
+Utilities
+===============
+
+.. autofunction:: featuremonkey.get_features_from_equation_file
