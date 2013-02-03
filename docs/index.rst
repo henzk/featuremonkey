@@ -84,6 +84,9 @@ Changelog
 
 **HEAD**
 
+**0.2.2**
+
+- added ``get_features_from_equation_file`` to public API
 - added import guards
 - split into multiple files
 - **backwards incompatible change:** signatures of ``feature.select`` functions need to be changed from ``feature.select`` to ``feature.select(composer)``.
