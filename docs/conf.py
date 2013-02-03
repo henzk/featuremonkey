@@ -49,9 +49,11 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
+import featuremonkey
+
 # General information about the project.
 project = u'featuremonkey'
-copyright = u'2012-2013, Hendrik Speidel'
+copyright = featuremonkey.__author__
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -59,8 +61,6 @@ copyright = u'2012-2013, Hendrik Speidel'
 #
 def get_short_version(version):
     return '.'.join(version.split('.')[:2])
-
-import featuremonkey
 
 # The short X.Y version.
 version = get_short_version(featuremonkey.__version__)
