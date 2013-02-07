@@ -174,6 +174,14 @@ class Composer(object):
                 feature_spec_module = importlib.import_module(
                     feature_name + '.feature'
                 )
+                if not hasattr(feature_spec_module, 'select'):
+                    raise CompositionError(
+                        'Function %s.feature.select not found!\n '
+                        'Feature modules need to specify a function'
+                        ' select(composer).' % (
+                            feature_name
+                        )
+                    )
                 args, varargs, keywords, defaults = inspect.getargspec(
                     feature_spec_module.select
                 )
