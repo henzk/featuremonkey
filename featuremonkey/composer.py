@@ -39,7 +39,7 @@ class CompositionError(Exception): pass
 class Composer(object):
 
 
-    def _introduce(self, role, target_attrname, attr, base):
+    def _introduce(self, role, target_attrname, transformation, base):
         if hasattr(base, target_attrname):
             raise CompositionError(
                 'Cannot introduce "%s" from "%s" into "%s"!'
@@ -49,9 +49,9 @@ class Composer(object):
                     _get_base_name(base),
                 )
             )
-        if callable(attr):
-            evaluated_attr = attr()
-            if not callable(evaluated_attr):
+        if callable(transformation):
+            evaluated_trans = transformation()
+            if not callable(evaluated_trans):
                 raise CompositionError(
                     'Cannot introduce "%s" from "%s" into "%s"!'
                     ' Method Introduction is not callable!' % (
@@ -60,12 +60,12 @@ class Composer(object):
                         _get_base_name(base),
                     )
                 )
-            setattr(base, target_attrname, _get_method(evaluated_attr, base))
+            setattr(base, target_attrname, _get_method(evaluated_trans, base))
         else:
-            setattr(base, target_attrname, attr)
+            setattr(base, target_attrname, transformation)
 
 
-    def _refine(self, role, target_attrname, attr, base):
+    def _refine(self, role, target_attrname, transformation, base):
         if not hasattr(base, target_attrname):
             raise CompositionError(
                 'Cannot refine "%s" of "%s" by "%s"!'
@@ -75,38 +75,39 @@ class Composer(object):
                     _get_role_name(role),
                 )
             )
-        if callable(attr):
+        if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
                 if inspect.isclass(base) or inspect.ismodule(base):
-                    setattr(base, target_attrname, _get_method(attr(baseattr), base))
+                    setattr(base, target_attrname, _get_method(transformation(baseattr), base))
                 else:
-                    setattr(base, target_attrname, _get_method(attr(_delegate(baseattr)), base))
+                    setattr(base, target_attrname, _get_method(transformation(_delegate(baseattr)), base))
             else:
-                setattr(base, target_attrname, attr(baseattr))
+                setattr(base, target_attrname, transformation(baseattr))
         else:
-            setattr(base, target_attrname, attr)
+            setattr(base, target_attrname, transformation)
 
 
-    def _apply_operation(self, role, base, attr, attrname):
+    def _apply_transformation(self, role, base, transformation, attrname):
         if attrname.startswith('introduce_'):
             target_attrname = attrname[len('introduce_'):]
-            self._introduce(role, target_attrname, attr, base)
+            self._introduce(role, target_attrname, transformation, base)
         elif attrname.startswith('refine_'):
             target_attrname = attrname[len('refine_'):]
-            self._refine(role, target_attrname, attr, base)
+            self._refine(role, target_attrname, transformation, base)
         elif attrname.startswith('child_'):
             target_attrname = attrname[len('child_'):]
-            refinement = attr()
+            refinement = transformation()
             self.compose(refinement, getattr(base, target_attrname))
 
     def _compose_pair(self, role, base):
         '''
         composes onto base by applying the role
         '''
+        #apply transformations in role to base
         for attrname in dir(role):
-            attr = getattr(role, attrname)
-            self._apply_operation(role, base, attr, attrname)
+            transformation = getattr(role, attrname)
+            self._apply_transformation(role, base, transformation, attrname)
 
         return base
 
