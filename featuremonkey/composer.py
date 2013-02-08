@@ -78,14 +78,37 @@ class Composer(object):
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
-                if inspect.isclass(base) or inspect.ismodule(base):
-                    setattr(base, target_attrname, _get_method(transformation(baseattr), base))
-                else:
-                    setattr(base, target_attrname, _get_method(transformation(_delegate(baseattr)), base))
+                wrapper = self._create_refinement_wrapper(
+                    transformation, baseattr, base
+                )
+                setattr(base, target_attrname, wrapper)
             else:
                 setattr(base, target_attrname, transformation(baseattr))
         else:
             setattr(base, target_attrname, transformation)
+
+
+    def _create_refinement_wrapper(self, transformation, baseattr, base):
+        """
+        applies refinement ``transformation`` to ``baseattr`` attribute of ``base``.
+        ``baseattr`` can be any type of callable (function, method, functor)
+        this method handles the differences.
+        docstrings are also rescued from the original if the refinement
+        has no docstring set.
+        """
+        if _is_class_instance(base):
+            #methods need a delegator
+            original = _delegate(baseattr)
+        else:
+            original = baseattr
+
+        wrapper = transformation(original)
+
+        #rescue docstring
+        if not wrapper.__doc__:
+            wrapper.__doc__ = baseattr.__doc__
+
+        return _get_method(wrapper, base)
 
 
     def _apply_transformation(self, role, base, transformation, attrname):
