@@ -78,37 +78,6 @@ featuremonkey Reference
     reference
 
 
-***************************************
-Changelog
-***************************************
-
-**HEAD**
-
-**0.2.2**
-
-- added ``get_features_from_equation_file`` to public API
-- added import guards
-- split into multiple files
-- **backwards incompatible change:** signatures of ``feature.select`` functions need to be changed from ``feature.select`` to ``feature.select(composer)``.
-
-**0.2.1**
-
-- more docs
-- raises ``CompositionError`` consistently
-
-**0.2**
-
-
-- first release on PYPI
-- composer is now class based
-- fixes compose_later composition order
-- initial docs
-
-**0.1**
-
-- initial version
-
-
 *********************
 Indices and tables
 *********************
@@ -116,6 +85,16 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+
+**********************
+Changelog
+**********************
+
+.. toctree::
+    :maxdepth: 2
+
+    changelog
 
 
 .. [ALMK] S. Apel, C. Lengauer, B. Möller, and C. Kästner.
