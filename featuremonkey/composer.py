@@ -219,7 +219,15 @@ class Composer(object):
                 #call the feature`s select function
                 feature_spec_module.select(self)
             except ImportError:
-                pass
+                #Unfortunately, python makes it really hard
+                #to distinguish missing modules from modules
+                #that contain errors.
+                #Hacks like parsing the exception message will
+                #not work reliably due to import hooks and such.
+                #Conclusion: features must contain a feature.py for now
+
+                #reraise
+                raise
 
 
     def select_equation(self, filename):
