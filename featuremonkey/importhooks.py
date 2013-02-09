@@ -40,6 +40,21 @@ class ImportHookBase(object):
             cls._hook = None
 
 
+def load_fsts(fst_list):
+    from featuremonkey import CompositionError
+    result = []
+    for elem in fst_list:
+        if isinstance(elem, str):
+            try:
+                elem = importlib.import_module(elem)
+            except ImportError:
+                raise CompositionError(
+                    'FST "%s" cannot be imported!' % elem
+                )
+        result.append(elem)
+    return result
+
+
 class LazyComposerHook(ImportHookBase):
     """
     Import Hook required for compose_later to work.
@@ -74,6 +89,7 @@ class LazyComposerHook(ImportHookBase):
         layers = self._to_compose.pop(module_name)
         module = importlib.import_module(module_name)
         for fsts, composer in layers:
+            fsts = load_fsts(fsts)
             fsts.append(module)
             composer.compose(*fsts)
         if not self._to_compose:
