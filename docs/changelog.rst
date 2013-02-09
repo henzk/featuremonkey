@@ -5,6 +5,8 @@ Changelog
 
 **HEAD**
 
+**0.3.0**
+
 - better error messages
 - feature.py is now mandatory for features
 - compose_later also accepts transformations specified as strings (these are assumed to be module names and will be imported at composition time)
