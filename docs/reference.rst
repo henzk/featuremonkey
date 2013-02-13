@@ -2,6 +2,58 @@
 featuremonkey Reference
 ************************
 
+Feature Layout
+===================
+
+Features are represented as Python packages.
+The feature name is defined as the name of the package.
+The package needs to define a module called ``feature``,
+which must define a function ``select(composer)``.
+
+This function is called by the composer to bind the feature.
+Its purpose is to apply *structure transformations*
+to the program using the ``composer``, which gets passed as argument.
+
+
+File Structure
+-------------------
+
+::
+
+    myfeature/
+        __init__.py
+        feature.py
+
+
+Above, mandatory files to specify a feature called ``myfeature`` are listed.
+``__init__.py`` is needed to mark the directory as a python package.
+
+Additionally, features may contain other modules, subpackages and non-Python files.
+
+
+::
+
+    #myfeature/feature.py
+
+    def select(composer):
+        #bind myfeature by applying necessary transformations
+
+        #apply transformation myfeature.mymodule to basefeature.mymodule
+        from . import mymodule
+        import basefeature.mymodule
+        composer.compose(mymodule, basefeature.mymodule)
+
+
+Here, the example of a ``feature`` module inside a feature package is given.
+
+Function ``select`` is mandatory, but may be empty.
+Necessary transformations are applied there.
+
+In the following, the different types of structure transformations offered by the composer
+are described.
+
+
+
 Feature Structure Trees
 =========================
 
@@ -132,8 +184,7 @@ FST Composition
 
 
 
-Feature Layout
-===================
+
 
 
 Product Selection
