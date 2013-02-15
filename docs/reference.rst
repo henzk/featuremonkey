@@ -2,17 +2,32 @@
 featuremonkey Reference
 ************************
 
+Feature Composition
+=======================
+
+A feature bundles *introductions* and *refinements* to the codebase.
+Introductions are additions to the codebase, refinements allow certain modifications of existing code.
+
+We will use *structure transformation* or transformation as the more generic term, when referring to introductions and refinements
+(Often, refinement is used instead, because technically an introduction is a form of refinement --- transformation is used here just to avoid confusion).
+
+The process of actually applying the introductions and modifications of a given feature is called *feature binding*.
+
+*Feature Composition* is the stepwise binding of a *feature selection* --- a specified set of features in a specified order.
+
+
 Feature Layout
 ===================
 
 Features are represented as Python packages.
-The feature name is defined as the name of the package.
+The feature name is defined as the fully qualified name of the package.
+
 The package needs to define a module called ``feature``,
 which must define a function ``select(composer)``.
 
 This function is called by the composer to bind the feature.
-Its purpose is to apply *structure transformations*
-to the program using the ``composer``, which gets passed as argument.
+Its purpose is to apply the structure transformations defined by the feature
+using the composer, which gets passed in as sole argument.
 
 
 File Structure
@@ -26,9 +41,9 @@ File Structure
 
 
 Above, mandatory files to specify a feature called ``myfeature`` are listed.
-``__init__.py`` is needed to mark the directory as a python package.
+Additionally, features may contain other modules, subpackages and also non-Python files.
 
-Additionally, features may contain other modules, subpackages and non-Python files.
+Note: ``__init__.py`` is needed to mark the directory as a python package.
 
 
 ::
@@ -46,12 +61,10 @@ Additionally, features may contain other modules, subpackages and non-Python fil
 
 Here, the example of a ``feature`` module inside a feature package is given.
 
-Function ``select`` is mandatory, but may be empty.
-Necessary transformations are applied there.
+``select`` is mandatory, but may be empty if there are no transformations to apply, e.g. in case of the base feature.
 
 In the following, the different types of structure transformations offered by the composer
 are described.
-
 
 
 Feature Structure Trees
