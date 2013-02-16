@@ -17,37 +17,36 @@ There are multiple definitions of what a feature really is. Here, we use the def
     and to offer a configuration option [ALMK]_ .
 
 When trying to modularize software-systems to acheive reusability, components come to mind.
-However, there is a problem with that: large components are very specific which limits reuse;
-many small components often make it necessary to write larger amounts of glue code to integrate them.
+However, large components are often very specific which limits their reuse;
+many small components often make it necessary to write a large amount of glue code to integrate them.
 
 So components are nice --- but it feels like there is something missing.
 
 Features provide an additional dimension of modularity by allowing the developer to encapsulate
-code related to a specific concern that is scattered across multiple locations of the codebase into feature modules.
-Products can then be composed automatically by selecting a set of feature modules.
+code related to a specific concern that is scattered across multiple locations of the codebase into so-called *feature modules*.
+Products can then be composed automatically by selecting a set of these feature modules.
 
 Common approaches to FOSD are the use of generative techniques 
-i.e. composing a product`s code and other artefacts as part of the build process,
-the use of specialized programming languages with feature support,
-or making features explicit using IDE support.
+i.e. statically composing a product`s code and other artefacts 
+as part of the build process e.g. `FeatureHouse <http://fosd.net/fh>`_,
+the use of specialized programming languages with feature support e.g. `FeatureC++ <http://fosd.net/fcc>`_,
+or by making features explicit using IDE support e.g. `CIDE <http://fosd.net/cide>`_.
 
-``featuremonkey`` implements feature composition by using monkeypatching i.e. structures are dynamically redefined at runtime.
+``featuremonkey`` implements feature composition by using monkeypatching i.e. structures are dynamically modified at runtime.
 
 
 *******************************************
 Fun facts on featuremonkey for FOSD people
 *******************************************
 
+- dynamic feature binding at startup time or later
+- no unbind
+- in Python everything is an object --- ``featuremonkey`` composes objects
+- function/method refinements are implemented as delegation layers(wrappers wrapping wrappers wrapping ...)
+- uses monkeypatching to bind features --- dynamic program modification
 
-- features are bound at startup time or later (dynamic feature binding)
-- however, feature binding is not fully dynamic as there is no way to unbind a feature once it has been bound.
-- featuremonkey uses delegation layers that are injected at runtime when composing the features.
-- featuremonkey composes objects(instances that is)
-- packages, modules, classes, functions, methods and so on are all objects in python ... therefore, featuremonkey can compose those as well.
-- featuremonkey uses monkeypatching to bind features: it adapts the interpreter state.
-
-
-The basic operation  offered by ``featuremonkey`` is ``compose``.
+The central operation exposed by ``featuremonkey`` is ``compose``.
+It applies transformations.
 
 ***************************************
 Feature Oriented Software Development
