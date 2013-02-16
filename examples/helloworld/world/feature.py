@@ -6,10 +6,9 @@ class MainRefinement(object):
             print 'World'
         return hello
 
-def select():
+def select(composer):
     
     #here we declare the refinement directly in feature.py
     #see wonderful feature for an example on how to reference refinements specified in extra files
-    from featuremonkey import compose
     from hello import main
-    compose(MainRefinement(), main)
+    composer.compose(MainRefinement(), main)

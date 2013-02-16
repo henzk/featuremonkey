@@ -1,5 +1,9 @@
 import hello.main
-import world.feature
+import featuremonkey
 
-world.feature.select()
+featuremonkey.select(
+    'hello',
+    'world',
+)
+
 hello.main.hello()
