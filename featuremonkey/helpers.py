@@ -35,10 +35,10 @@ import sys
 if sys.version_info < (2, 7):
 
     def _extract_staticmethod(m):
-        return m.__get__(True).im_func
+        return m.__get__(True)
 
     def _extract_classmethod(m):
-        return m.__get__(True)
+        return m.__get__(True).im_func
 
 else:
 
