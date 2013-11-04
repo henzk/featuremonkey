@@ -8,7 +8,7 @@ import sys
 from functools import wraps
 from .importhooks import LazyComposerHook
 from .helpers import (_delegate, _is_class_instance, _get_role_name,
-    _get_base_name, _get_method)
+    _get_base_name, _get_method, _extract_classmethod, _extract_staticmethod)
 
 def get_features_from_equation_file(filename):
     '''
@@ -110,10 +110,10 @@ class Composer(object):
             dictelem = base.__dict__.get(target_attrname, None)
             if isinstance(dictelem, staticmethod):
                 special_refinement_type = 'staticmethod'
-                original = dictelem.__func__
+                original = _extract_staticmethod(dictelem)
             elif isinstance(dictelem, classmethod):
                 special_refinement_type = 'classmethod'
-                original = dictelem.__func__
+                original = _extract_classmethod(dictelem)
             else:
                 #default handling
                 original = baseattr

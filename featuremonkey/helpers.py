@@ -29,3 +29,20 @@ def _get_method(method, base):
         return method.__get__(base, base.__class__)
     else:
         return method
+
+
+import sys
+if sys.version_info < (2, 7):
+
+    def _extract_staticmethod(m):
+        return m.__get__(True).im_func
+
+    def _extract_classmethod(m):
+        return m.__get__(True)
+
+else:
+
+    def _extract_staticmethod(m):
+        return m.__func__
+
+    _extract_classmethod = _extract_staticmethod
