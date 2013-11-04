@@ -5,6 +5,7 @@ class Base(object):
     def base_method(self, a_str):
         return a_str
 
+
 class MemberIntroduction(object):
     introduce_a = 1
 
@@ -38,3 +39,40 @@ class MethodRefinement2(object):
             return original(self, a_str) + 'refined'
         
         return base_method
+
+
+class StaticBase(object):
+
+    @staticmethod
+    def base_method(a_str):
+        return a_str
+
+
+class StaticMethodRefinement(object):
+
+    def refine_base_method(self, original):
+
+        def base_method(a_str):
+            return original(a_str) + 'refined'
+
+        return base_method
+
+
+class ClassMethodBase(object):
+
+    @classmethod
+    def base_method(cls, a_str):
+        return a_str
+
+
+class ClassMethodRefinement(object):
+
+    def refine_base_method(self, original):
+
+        def base_method(cls, a_str):
+            return original(cls, a_str) + 'refined'
+
+        return base_method
+
+
+

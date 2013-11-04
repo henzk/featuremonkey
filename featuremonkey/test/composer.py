@@ -80,6 +80,20 @@ class TestClassComposition(unittest.TestCase):
         compose(mocks.MethodRefinement2(), mocks.Base)
         self.assertEquals('Hellorefined', mocks.Base().base_method('Hello'))
 
+    def test_staticmethod(self):
+        self.assertEquals('Hello', mocks.StaticBase.base_method('Hello'))
+        self.assertEquals('Hello', mocks.StaticBase().base_method('Hello'))
+        compose(mocks.StaticMethodRefinement(), mocks.StaticBase)
+        self.assertEquals('Hellorefined', mocks.StaticBase.base_method('Hello'))
+        self.assertEquals('Hellorefined', mocks.StaticBase().base_method('Hello'))
+
+    def test_classmethod(self):
+        self.assertEquals('Hello', mocks.ClassMethodBase.base_method('Hello'))
+        self.assertEquals('Hello', mocks.ClassMethodBase().base_method('Hello'))
+        compose(mocks.ClassMethodRefinement(), mocks.ClassMethodBase)
+        self.assertEquals('Hellorefined', mocks.ClassMethodBase.base_method('Hello'))
+        self.assertEquals('Hellorefined', mocks.ClassMethodBase().base_method('Hello'))
+
 class TestModuleComposition(unittest.TestCase):
 
     def setUp(self):
