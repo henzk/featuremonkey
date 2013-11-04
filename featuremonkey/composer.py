@@ -79,7 +79,7 @@ class Composer(object):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
                 wrapper = self._create_refinement_wrapper(
-                    transformation, baseattr, base
+                    transformation, baseattr, base, target_attrname
                 )
                 setattr(base, target_attrname, wrapper)
             else:
@@ -88,7 +88,7 @@ class Composer(object):
             setattr(base, target_attrname, transformation)
 
 
-    def _create_refinement_wrapper(self, transformation, baseattr, base):
+    def _create_refinement_wrapper(self, transformation, baseattr, base, target_attrname):
         """
         applies refinement ``transformation`` to ``baseattr`` attribute of ``base``.
         ``baseattr`` can be any type of callable (function, method, functor)
@@ -96,19 +96,46 @@ class Composer(object):
         docstrings are also rescued from the original if the refinement
         has no docstring set.
         """
+        #first step: extract the original
+        special_refinement_type=None
+
         if _is_class_instance(base):
             #methods need a delegator
+            special_refinement_type = 'instancemethod'
             original = _delegate(baseattr)
+            ##TODO: evaluate this: 
+            #original = base.__class__.__dict__[target_attrname]
         else:
-            original = baseattr
+            #now peek into base.__dict__ to identify staticmethods and classmethods
+            dictelem = base.__dict__.get(target_attrname, None)
+            if isinstance(dictelem, staticmethod):
+                special_refinement_type = 'staticmethod'
+                original = dictelem.__func__
+            elif isinstance(dictelem, classmethod):
+                special_refinement_type = 'classmethod'
+                original = dictelem.__func__
+            else:
+                #default handling
+                original = baseattr
 
+        #step two: call the refinement passing it the original
+        #the result is the wrapper
         wrapper = transformation(original)
 
         #rescue docstring
         if not wrapper.__doc__:
             wrapper.__doc__ = baseattr.__doc__
 
-        return _get_method(wrapper, base)
+        #step three: make wrapper ready for injection
+
+        if special_refinement_type == 'instancemethod':
+            return wrapper.__get__(base, base.__class__)
+        elif special_refinement_type == 'staticmethod':
+            return staticmethod(wrapper)
+        elif special_refinement_type == 'classmethod':
+            return classmethod(wrapper)
+        else:
+            return wrapper
 
 
     def _apply_transformation(self, role, base, transformation, attrname):
