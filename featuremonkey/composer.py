@@ -98,22 +98,26 @@ class Composer(object):
         """
         #first step: extract the original
         special_refinement_type=None
+        instance_refinement = _is_class_instance(base)
 
-        if _is_class_instance(base):
-            #methods need a delegator
-            special_refinement_type = 'instancemethod'
-            original = _delegate(baseattr)
-            ##TODO: evaluate this: 
-            #original = base.__class__.__dict__[target_attrname]
+        if instance_refinement:
+            dictelem = base.__class__.__dict__.get(target_attrname, None)
         else:
-            #now peek into base.__dict__ to identify staticmethods and classmethods
             dictelem = base.__dict__.get(target_attrname, None)
-            if isinstance(dictelem, staticmethod):
-                special_refinement_type = 'staticmethod'
-                original = _extract_staticmethod(dictelem)
-            elif isinstance(dictelem, classmethod):
-                special_refinement_type = 'classmethod'
-                original = _extract_classmethod(dictelem)
+
+
+        if isinstance(dictelem, staticmethod):
+            special_refinement_type = 'staticmethod'
+            original = _extract_staticmethod(dictelem)
+        elif isinstance(dictelem, classmethod):
+            special_refinement_type = 'classmethod'
+            original = _extract_classmethod(dictelem)
+        else:
+            if instance_refinement:
+                #methods need a delegator
+                original = _delegate(baseattr)
+                ##TODO: evaluate this: 
+                #original = base.__class__.__dict__[target_attrname]
             else:
                 #default handling
                 original = baseattr
@@ -127,15 +131,15 @@ class Composer(object):
             wrapper.__doc__ = baseattr.__doc__
 
         #step three: make wrapper ready for injection
-
-        if special_refinement_type == 'instancemethod':
-            return wrapper.__get__(base, base.__class__)
-        elif special_refinement_type == 'staticmethod':
-            return staticmethod(wrapper)
+        if special_refinement_type == 'staticmethod':
+            wrapper = staticmethod(wrapper)
         elif special_refinement_type == 'classmethod':
-            return classmethod(wrapper)
-        else:
-            return wrapper
+            wrapper = classmethod(wrapper)
+
+        if instance_refinement:
+            wrapper = wrapper.__get__(base, base.__class__)
+
+        return wrapper
 
 
     def _apply_transformation(self, role, base, transformation, attrname):

@@ -49,6 +49,20 @@ class TestObjectComposition(unittest.TestCase):
         composition = compose(mocks.MethodRefinement(), instance)
         self.assertEquals('Hellorefined', composition.base_method('Hello'))
 
+    def test_staticmethod(self):
+        instance = mocks.StaticBase()
+        instance2 = mocks.StaticBase()
+        self.assertEquals('Hello', instance.base_method('Hello'))
+        composition = compose(mocks.StaticMethodRefinement(), instance)
+        self.assertEquals('Hellorefined', composition.base_method('Hello'))
+        self.assertEquals('Hello', instance2.base_method('Hello'))
+
+    def test_classmethod(self):
+        instance = mocks.ClassMethodBase()
+        self.assertEquals('Hello', instance.base_method('Hello'))
+        composition = compose(mocks.ClassMethodRefinement(), instance)
+        self.assertEquals('Hellorefined', composition.base_method('Hello'))
+
 
 class TestClassComposition(unittest.TestCase):
 
