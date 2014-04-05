@@ -3,7 +3,12 @@
 Changelog
 ***************************************
 
-**HEAD**
+**0.3.1**
+
+- support refinement of methods decorated with ``staticmethod`` and ``classmethod``
+- improved docs
+- fixed broken examples
+
 
 **0.3.0**
 
