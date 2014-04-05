@@ -8,7 +8,7 @@ import sys
 from functools import wraps
 from .importhooks import LazyComposerHook
 from .helpers import (_delegate, _is_class_instance, _get_role_name,
-    _get_base_name, _get_method)
+    _get_base_name, _get_method, _extract_classmethod, _extract_staticmethod)
 
 def get_features_from_equation_file(filename):
     '''
@@ -79,7 +79,7 @@ class Composer(object):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
                 wrapper = self._create_refinement_wrapper(
-                    transformation, baseattr, base
+                    transformation, baseattr, base, target_attrname
                 )
                 setattr(base, target_attrname, wrapper)
             else:
@@ -88,7 +88,7 @@ class Composer(object):
             setattr(base, target_attrname, transformation)
 
 
-    def _create_refinement_wrapper(self, transformation, baseattr, base):
+    def _create_refinement_wrapper(self, transformation, baseattr, base, target_attrname):
         """
         applies refinement ``transformation`` to ``baseattr`` attribute of ``base``.
         ``baseattr`` can be any type of callable (function, method, functor)
@@ -96,19 +96,50 @@ class Composer(object):
         docstrings are also rescued from the original if the refinement
         has no docstring set.
         """
-        if _is_class_instance(base):
-            #methods need a delegator
-            original = _delegate(baseattr)
-        else:
-            original = baseattr
+        #first step: extract the original
+        special_refinement_type=None
+        instance_refinement = _is_class_instance(base)
 
+        if instance_refinement:
+            dictelem = base.__class__.__dict__.get(target_attrname, None)
+        else:
+            dictelem = base.__dict__.get(target_attrname, None)
+
+
+        if isinstance(dictelem, staticmethod):
+            special_refinement_type = 'staticmethod'
+            original = _extract_staticmethod(dictelem)
+        elif isinstance(dictelem, classmethod):
+            special_refinement_type = 'classmethod'
+            original = _extract_classmethod(dictelem)
+        else:
+            if instance_refinement:
+                #methods need a delegator
+                original = _delegate(baseattr)
+                ##TODO: evaluate this: 
+                #original = base.__class__.__dict__[target_attrname]
+            else:
+                #default handling
+                original = baseattr
+
+        #step two: call the refinement passing it the original
+        #the result is the wrapper
         wrapper = transformation(original)
 
         #rescue docstring
         if not wrapper.__doc__:
             wrapper.__doc__ = baseattr.__doc__
 
-        return _get_method(wrapper, base)
+        #step three: make wrapper ready for injection
+        if special_refinement_type == 'staticmethod':
+            wrapper = staticmethod(wrapper)
+        elif special_refinement_type == 'classmethod':
+            wrapper = classmethod(wrapper)
+
+        if instance_refinement:
+            wrapper = wrapper.__get__(base, base.__class__)
+
+        return wrapper
 
 
     def _apply_transformation(self, role, base, transformation, attrname):

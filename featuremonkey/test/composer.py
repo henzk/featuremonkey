@@ -49,6 +49,20 @@ class TestObjectComposition(unittest.TestCase):
         composition = compose(mocks.MethodRefinement(), instance)
         self.assertEquals('Hellorefined', composition.base_method('Hello'))
 
+    def test_staticmethod(self):
+        instance = mocks.StaticBase()
+        instance2 = mocks.StaticBase()
+        self.assertEquals('Hello', instance.base_method('Hello'))
+        composition = compose(mocks.StaticMethodRefinement(), instance)
+        self.assertEquals('Hellorefined', composition.base_method('Hello'))
+        self.assertEquals('Hello', instance2.base_method('Hello'))
+
+    def test_classmethod(self):
+        instance = mocks.ClassMethodBase()
+        self.assertEquals('Hello', instance.base_method('Hello'))
+        composition = compose(mocks.ClassMethodRefinement(), instance)
+        self.assertEquals('Hellorefined', composition.base_method('Hello'))
+
 
 class TestClassComposition(unittest.TestCase):
 
@@ -79,6 +93,20 @@ class TestClassComposition(unittest.TestCase):
     def test_method_refinement(self):
         compose(mocks.MethodRefinement2(), mocks.Base)
         self.assertEquals('Hellorefined', mocks.Base().base_method('Hello'))
+
+    def test_staticmethod(self):
+        self.assertEquals('Hello', mocks.StaticBase.base_method('Hello'))
+        self.assertEquals('Hello', mocks.StaticBase().base_method('Hello'))
+        compose(mocks.StaticMethodRefinement(), mocks.StaticBase)
+        self.assertEquals('Hellorefined', mocks.StaticBase.base_method('Hello'))
+        self.assertEquals('Hellorefined', mocks.StaticBase().base_method('Hello'))
+
+    def test_classmethod(self):
+        self.assertEquals('Hello', mocks.ClassMethodBase.base_method('Hello'))
+        self.assertEquals('Hello', mocks.ClassMethodBase().base_method('Hello'))
+        compose(mocks.ClassMethodRefinement(), mocks.ClassMethodBase)
+        self.assertEquals('Hellorefined', mocks.ClassMethodBase.base_method('Hello'))
+        self.assertEquals('Hellorefined', mocks.ClassMethodBase().base_method('Hello'))
 
 class TestModuleComposition(unittest.TestCase):
 
