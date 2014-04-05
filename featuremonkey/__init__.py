@@ -5,7 +5,7 @@ from featuremonkey.composer import (Composer,
 
 from featuremonkey.importhooks import ImportGuardHook
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 __author__ = 'Hendrik Speidel <hendrik@schnapptack.de>'
 
 
