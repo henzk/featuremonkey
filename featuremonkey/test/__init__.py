@@ -13,3 +13,8 @@ def suite():
 def run_all():
 
     return unittest.TextTestRunner(verbosity=2).run(suite())
+
+
+def run_in_jenkins():
+    import xmlrunner
+    return xmlrunner.XMLTestRunner(output='test-reports').run(suite())
