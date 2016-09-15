@@ -21,7 +21,8 @@ def _get_role_name(role):
 
 
 def _get_base_name(base):
-    return "%s:%s" % (base.__name__, base.__class__.__name__)
+    name = getattr(base, '__name__', repr(base))
+    return "%s:%s" % (name, base.__class__.__name__)
 
 
 def _get_method(method, base):
