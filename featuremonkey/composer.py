@@ -2,6 +2,7 @@
 composer.py - feature oriented composition of python code
 '''
 from __future__ import absolute_import
+from __future__ import print_function
 import inspect
 import importlib
 import sys
@@ -36,8 +37,14 @@ def get_features_from_equation_file(filename):
 
 class CompositionError(Exception): pass
 
+OPERATION_LOG = []
+
 class Composer(object):
 
+    def __init__(self, use_separate_log=False):
+        self.operation_log = OPERATION_LOG
+        if use_separate_log:
+            self.operation_log = []
 
     def _introduce(self, role, target_attrname, transformation, base):
         if hasattr(base, target_attrname):
@@ -49,6 +56,12 @@ class Composer(object):
                     _get_base_name(base),
                 )
             )
+        self.operation_log.append(dict(
+            type='introduction',
+            target_attrname=target_attrname,
+            role=_get_role_name(role),
+            base=_get_base_name(base),
+        ))
         if callable(transformation):
             evaluated_trans = transformation()
             if not callable(evaluated_trans):
@@ -75,6 +88,12 @@ class Composer(object):
                     _get_role_name(role),
                 )
             )
+        self.operation_log.append(dict(
+            type='refinement',
+            target_attrname=target_attrname,
+            role=_get_role_name(role),
+            base=_get_base_name(base),
+        ))
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
