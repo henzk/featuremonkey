@@ -56,12 +56,13 @@ class Composer(object):
                     _get_base_name(base),
                 )
             )
-        self.operation_log.append(dict(
+        operation = dict(
             type='introduction',
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
-        ))
+            old_value=getattr(base, target_attrname, None)
+        )
         if callable(transformation):
             evaluated_trans = transformation()
             if not callable(evaluated_trans):
@@ -74,9 +75,12 @@ class Composer(object):
                     )
                 )
             setattr(base, target_attrname, _get_method(evaluated_trans, base))
+            new_value = evaluated_trans
         else:
             setattr(base, target_attrname, transformation)
-
+            new_value = transformation
+        operation['new_value'] = new_value
+        self.operation_log.append(operation)
 
     def _refine(self, role, target_attrname, transformation, base):
         if not hasattr(base, target_attrname):
@@ -88,12 +92,13 @@ class Composer(object):
                     _get_role_name(role),
                 )
             )
-        self.operation_log.append(dict(
+        operation = dict(
             type='refinement',
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
-        ))
+            old_value=getattr(base, target_attrname, None)
+        )
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
@@ -101,13 +106,19 @@ class Composer(object):
                     transformation, baseattr, base, target_attrname
                 )
                 setattr(base, target_attrname, wrapper)
+                new_value = wrapper
             else:
-                setattr(base, target_attrname, transformation(baseattr))
+                evaluated_trans = transformation(baseattr)
+                setattr(base, target_attrname, evaluated_trans)
+                new_value = evaluated_trans
         else:
             setattr(base, target_attrname, transformation)
+            new_value = transformation
+        operation['new_value'] = new_value
+        self.operation_log.append(operation)
 
-
-    def _create_refinement_wrapper(self, transformation, baseattr, base, target_attrname):
+    @staticmethod
+    def _create_refinement_wrapper(transformation, baseattr, base, target_attrname):
         """
         applies refinement ``transformation`` to ``baseattr`` attribute of ``base``.
         ``baseattr`` can be any type of callable (function, method, functor)
@@ -135,7 +146,7 @@ class Composer(object):
             if instance_refinement:
                 #methods need a delegator
                 original = _delegate(baseattr)
-                ##TODO: evaluate this: 
+                #TODO: evaluate this:
                 #original = base.__class__.__dict__[target_attrname]
             else:
                 #default handling
@@ -159,7 +170,6 @@ class Composer(object):
             wrapper = wrapper.__get__(base, base.__class__)
 
         return wrapper
-
 
     def _apply_transformation(self, role, base, transformation, attrname):
         if attrname.startswith('introduce_'):
@@ -206,7 +216,7 @@ class Composer(object):
         else:
             #recurse after applying last role to object
             return self.compose(*(
-                list(things[:-2]) #all but the last two 
+                list(things[:-2]) #all but the last two
                 #plus the composition of the last two
                 + [self._compose_pair(things[-2], things[-1])]
             ))
