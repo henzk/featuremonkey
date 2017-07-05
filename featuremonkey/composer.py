@@ -3,13 +3,15 @@ composer.py - feature oriented composition of python code
 '''
 from __future__ import absolute_import
 from __future__ import print_function
+
+import copy
 import inspect
 import importlib
 import sys
-from functools import wraps
 from .importhooks import LazyComposerHook
 from .helpers import (_delegate, _is_class_instance, _get_role_name,
     _get_base_name, _get_method, _extract_classmethod, _extract_staticmethod)
+
 
 def get_features_from_equation_file(filename):
     '''
@@ -35,9 +37,11 @@ def get_features_from_equation_file(filename):
             features.append(line)
     return features
 
+
 class CompositionError(Exception): pass
 
 OPERATION_LOG = []
+
 
 class Composer(object):
 
@@ -56,12 +60,15 @@ class Composer(object):
                     _get_base_name(base),
                 )
             )
+        # To ensure that the current values stays the same and is not
+        # modified by the transformation later on, the derived value is copied.
+        # This also applies for the new_value and the values in the _refine method
         operation = dict(
             type='introduction',
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
-            old_value=getattr(base, target_attrname, None)
+            old_value=copy.deepcopy(getattr(base, target_attrname, None))
         )
         if callable(transformation):
             evaluated_trans = transformation()
@@ -74,12 +81,13 @@ class Composer(object):
                         _get_base_name(base),
                     )
                 )
-            setattr(base, target_attrname, _get_method(evaluated_trans, base))
-            new_value = evaluated_trans
+            method = _get_method(evaluated_trans, base)
+            setattr(base, target_attrname, method)
+            new_value = method
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        operation['new_value'] = new_value
+        operation['new_value'] = copy.deepcopy(new_value)
         self.operation_log.append(operation)
 
     def _refine(self, role, target_attrname, transformation, base):
@@ -97,7 +105,7 @@ class Composer(object):
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
-            old_value=getattr(base, target_attrname, None)
+            old_value=copy.deepcopy(getattr(base, target_attrname, None))
         )
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
@@ -114,7 +122,7 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        operation['new_value'] = new_value
+        operation['new_value'] = copy.deepcopy(new_value)
         self.operation_log.append(operation)
 
     @staticmethod
@@ -126,7 +134,7 @@ class Composer(object):
         docstrings are also rescued from the original if the refinement
         has no docstring set.
         """
-        #first step: extract the original
+        # first step: extract the original
         special_refinement_type=None
         instance_refinement = _is_class_instance(base)
 
@@ -134,7 +142,6 @@ class Composer(object):
             dictelem = base.__class__.__dict__.get(target_attrname, None)
         else:
             dictelem = base.__dict__.get(target_attrname, None)
-
 
         if isinstance(dictelem, staticmethod):
             special_refinement_type = 'staticmethod'
@@ -144,23 +151,23 @@ class Composer(object):
             original = _extract_classmethod(dictelem)
         else:
             if instance_refinement:
-                #methods need a delegator
+                # methods need a delegator
                 original = _delegate(baseattr)
-                #TODO: evaluate this:
-                #original = base.__class__.__dict__[target_attrname]
+                # TODO: evaluate this:
+                # original = base.__class__.__dict__[target_attrname]
             else:
-                #default handling
+                # default handling
                 original = baseattr
 
-        #step two: call the refinement passing it the original
-        #the result is the wrapper
+        # step two: call the refinement passing it the original
+        # the result is the wrapper
         wrapper = transformation(original)
 
-        #rescue docstring
+        # rescue docstring
         if not wrapper.__doc__:
             wrapper.__doc__ = baseattr.__doc__
 
-        #step three: make wrapper ready for injection
+        # step three: make wrapper ready for injection
         if special_refinement_type == 'staticmethod':
             wrapper = staticmethod(wrapper)
         elif special_refinement_type == 'classmethod':
@@ -187,13 +194,12 @@ class Composer(object):
         '''
         composes onto base by applying the role
         '''
-        #apply transformations in role to base
+        # apply transformations in role to base
         for attrname in dir(role):
             transformation = getattr(role, attrname)
             self._apply_transformation(role, base, transformation, attrname)
 
         return base
-
 
     def compose(self, *things):
         '''
@@ -211,16 +217,15 @@ class Composer(object):
         if not len(things):
             raise CompositionError('nothing to compose')
         if len(things) == 1:
-            #composing one element is simple
+            # composing one element is simple
             return things[0]
         else:
-            #recurse after applying last role to object
+            # recurse after applying last role to object
             return self.compose(*(
-                list(things[:-2]) #all but the last two
-                #plus the composition of the last two
+                list(things[:-2])  # all but the last two
+                # plus the composition of the last two
                 + [self._compose_pair(things[-2], things[-1])]
             ))
-
 
     def compose_later(self, *things):
         """
@@ -241,7 +246,6 @@ class Composer(object):
             )
         LazyComposerHook.add(module_name, things[:-1], self)
 
-
     def select(self, *features):
         """
         selects the features given as string
@@ -253,7 +257,7 @@ class Composer(object):
         """
         for feature_name in features:
             feature_module = importlib.import_module(feature_name)
-            #if available, import feature.py and select the feature
+            # if available, import feature.py and select the feature
             try:
                 feature_spec_module = importlib.import_module(
                     feature_name + '.feature'
@@ -276,19 +280,18 @@ class Composer(object):
                             feature_name
                         )
                     )
-                #call the feature`s select function
+                # call the feature`s select function
                 feature_spec_module.select(self)
             except ImportError:
-                #Unfortunately, python makes it really hard
-                #to distinguish missing modules from modules
-                #that contain errors.
-                #Hacks like parsing the exception message will
-                #not work reliably due to import hooks and such.
-                #Conclusion: features must contain a feature.py for now
+                # Unfortunately, python makes it really hard
+                # to distinguish missing modules from modules
+                # that contain errors.
+                # Hacks like parsing the exception message will
+                # not work reliably due to import hooks and such.
+                # Conclusion: features must contain a feature.py for now
 
-                #reraise
+                # re-raise
                 raise
-
 
     def select_equation(self, filename):
         """
