@@ -114,7 +114,7 @@ class Composer(object):
                     transformation, baseattr, base, target_attrname
                 )
                 setattr(base, target_attrname, wrapper)
-                new_value = wrapper
+                new_value = transformation
             else:
                 evaluated_trans = transformation(baseattr)
                 setattr(base, target_attrname, evaluated_trans)
