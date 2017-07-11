@@ -3,7 +3,8 @@ import inspect
 
 def is_static_method(obj):
     klass = get_class_from_method(obj)
-
+    if not klass:
+        return False
     for cls in inspect.getmro(klass):
         if inspect.isroutine(obj):
             binded_value = cls.__dict__.get(obj.__name__)
@@ -19,4 +20,6 @@ def get_class_from_method(obj):
 
 def is_class_method(obj):
     klass = get_class_from_method(obj)
-    return klass and hasattr(klass, '__dict__') and isinstance(klass.__dict__.get(obj.__name__), classmethod)
+    if not klass:
+        return False
+    return hasattr(klass, '__dict__') and isinstance(klass.__dict__.get(obj.__name__), classmethod)
