@@ -7,6 +7,7 @@ from __future__ import print_function
 import copy
 import inspect
 import importlib
+import os
 import sys
 from .importhooks import LazyComposerHook
 from .helpers import (_delegate, _is_class_instance, _get_role_name,
@@ -40,15 +41,32 @@ def get_features_from_equation_file(filename):
 
 class CompositionError(Exception): pass
 
-OPERATION_LOG = []
+OPERATION_LOG = list()
+
+
+class NullOperationLogger(object):
+    """
+    Base class for logging the composer operations. Implement this and set it
+    in your environment as COMPOSITION_TRACER for real tracing.
+    To make the log accessible, use the OPERATION_LOG as your classes log attribute:
+        self.operation_log = OPERATION_LOG
+    """
+    operation_log = OPERATION_LOG
+
+    def log(self, operation=dict(), new_value="", old_value=""):
+        pass
+
+# prevent errors; in case there is no operation logger defined, use the NullOperationLogger
+if not os.environ.get('COMPOSITION_TRACER'):
+    os.environ['COMPOSITION_TRACER'] = NullOperationLogger.__module__ + '.' + NullOperationLogger.__name__
 
 
 class Composer(object):
 
-    def __init__(self, use_separate_log=False):
-        self.operation_log = OPERATION_LOG
-        if use_separate_log:
-            self.operation_log = []
+    def __init__(self):
+        klass_module = importlib.import_module('.'.join(os.environ['COMPOSITION_TRACER'].split('.')[:-1]))
+        klass = getattr(klass_module, os.environ['COMPOSITION_TRACER'].split('.')[-1])
+        self.composition_tracer = klass()
 
     def _introduce(self, role, target_attrname, transformation, base):
         if hasattr(base, target_attrname):
@@ -68,8 +86,8 @@ class Composer(object):
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
-            old_value=copy.deepcopy(getattr(base, target_attrname, None))
         )
+        old_value = getattr(base, target_attrname, None)
         if callable(transformation):
             evaluated_trans = transformation()
             if not callable(evaluated_trans):
@@ -87,8 +105,7 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        operation['new_value'] = copy.deepcopy(new_value)
-        self.operation_log.append(operation)
+        self.composition_tracer.log(operation=operation, old_value=old_value, new_value=new_value)
 
     def _refine(self, role, target_attrname, transformation, base):
         if not hasattr(base, target_attrname):
@@ -105,8 +122,8 @@ class Composer(object):
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
-            old_value=copy.deepcopy(getattr(base, target_attrname, None))
         )
+        old_value = getattr(base, target_attrname, None)
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
@@ -123,7 +140,7 @@ class Composer(object):
             setattr(base, target_attrname, transformation)
             new_value = transformation
         operation['new_value'] = copy.deepcopy(new_value)
-        self.operation_log.append(operation)
+        self.composition_tracer.log(operation=operation, old_value=old_value, new_value=new_value)
 
     @staticmethod
     def _create_refinement_wrapper(transformation, baseattr, base, target_attrname):
