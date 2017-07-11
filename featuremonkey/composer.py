@@ -4,7 +4,6 @@ composer.py - feature oriented composition of python code
 from __future__ import absolute_import
 from __future__ import print_function
 
-import copy
 import inspect
 import importlib
 import os
@@ -139,7 +138,6 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        operation['new_value'] = copy.deepcopy(new_value)
         self.composition_tracer.log(operation=operation, old_value=old_value, new_value=new_value)
 
     @staticmethod
