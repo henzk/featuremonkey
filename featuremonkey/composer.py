@@ -4,6 +4,7 @@ composer.py - feature oriented composition of python code
 from __future__ import absolute_import
 from __future__ import print_function
 
+from featuremonkey.tracing.logger import NullOperationLogger
 import inspect
 import importlib
 import os
@@ -40,20 +41,6 @@ def get_features_from_equation_file(filename):
 
 class CompositionError(Exception): pass
 
-OPERATION_LOG = list()
-
-
-class NullOperationLogger(object):
-    """
-    Base class for logging the composer operations. Implement this and set it
-    in your environment as COMPOSITION_TRACER for real tracing.
-    To make the log accessible, use the OPERATION_LOG as your classes log attribute:
-        self.operation_log = OPERATION_LOG
-    """
-    operation_log = OPERATION_LOG
-
-    def log(self, operation=dict(), new_value="", old_value=""):
-        pass
 
 # prevent errors; in case there is no operation logger defined, use the NullOperationLogger
 if not os.environ.get('COMPOSITION_TRACER'):
@@ -77,16 +64,14 @@ class Composer(object):
                     _get_base_name(base),
                 )
             )
-        # To ensure that the current values stays the same and is not
-        # modified by the transformation later on, the derived value is copied.
-        # This also applies for the new_value and the values in the _refine method
         operation = dict(
             type='introduction',
             target_attrname=target_attrname,
             role=_get_role_name(role),
             base=_get_base_name(base),
         )
-        old_value = getattr(base, target_attrname, None)
+        self.composition_tracer.log(operation=operation)
+        self.composition_tracer.log_old_value(operation=operation, old_value=getattr(base, target_attrname, None))
         if callable(transformation):
             evaluated_trans = transformation()
             if not callable(evaluated_trans):
@@ -104,7 +89,7 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        self.composition_tracer.log(operation=operation, old_value=old_value, new_value=new_value)
+        self.composition_tracer.log_new_value(operation=operation, new_value=new_value)
 
     def _refine(self, role, target_attrname, transformation, base):
         if not hasattr(base, target_attrname):
@@ -122,7 +107,10 @@ class Composer(object):
             role=_get_role_name(role),
             base=_get_base_name(base),
         )
-        old_value = getattr(base, target_attrname, None)
+        self.composition_tracer.log(operation=operation)
+        # In some cases the attribute refinement causes the old value to change, too (reference).
+        # Therefore, the value needs to be tracked (and so copied) before the refinement
+        self.composition_tracer.log_old_value(operation=operation, old_value=getattr(base, target_attrname, None))
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
@@ -138,7 +126,7 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        self.composition_tracer.log(operation=operation, old_value=old_value, new_value=new_value)
+        self.composition_tracer.log_new_value(operation=operation, new_value=new_value)
 
     @staticmethod
     def _create_refinement_wrapper(transformation, baseattr, base, target_attrname):
