@@ -1,8 +1,8 @@
-'''
+"""
 composer.py - feature oriented composition of python code
-'''
-from __future__ import absolute_import
-from __future__ import print_function
+"""
+
+from __future__ import absolute_import, print_function, unicode_literals
 
 from featuremonkey.tracing.logger import NullOperationLogger
 import inspect
@@ -70,8 +70,7 @@ class Composer(object):
             role=_get_role_name(role),
             base=_get_base_name(base),
         )
-        self.composition_tracer.log(operation=operation)
-        self.composition_tracer.log_old_value(operation=operation, old_value=getattr(base, target_attrname, None))
+        self.composition_tracer.log(operation=operation, old_value=getattr(base, target_attrname, None))
         if callable(transformation):
             evaluated_trans = transformation()
             if not callable(evaluated_trans):
@@ -107,10 +106,9 @@ class Composer(object):
             role=_get_role_name(role),
             base=_get_base_name(base),
         )
-        self.composition_tracer.log(operation=operation)
         # In some cases the attribute refinement causes the old value to change, too (reference).
         # Therefore, the value needs to be tracked (and so copied) before the refinement
-        self.composition_tracer.log_old_value(operation=operation, old_value=getattr(base, target_attrname, None))
+        self.composition_tracer.log(operation=operation, old_value=getattr(base, target_attrname, None))
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):

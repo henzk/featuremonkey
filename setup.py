@@ -1,29 +1,38 @@
 #! /usr/bin/env python
+from __future__ import unicode_literals
 
 import os
 
 DEPS = []
+
 try:
     import importlib
 except ImportError:
-    DEPS += ['importlib']
+    DEPS.append('importlib')
+
+try:
+    import six
+except ImportError:
+    DEPS.append('six')
 
 try:
     from setuptools import setup
     extra = {
-        'install_requires' : DEPS
+        'install_requires': DEPS
     }
 except ImportError:
     from distutils.core import setup
     extra = {
-        'dependencies' : DEPS
+        'dependencies': DEPS
     }
+
 
 def read(fname):
     try:
         return open(os.path.join(os.path.dirname(__file__), fname)).read()
     except IOError:
         return ''
+
 
 setup(
     name='featuremonkey',

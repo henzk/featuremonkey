@@ -1,3 +1,6 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
 """
 Serialization module
 ====================
@@ -15,7 +18,7 @@ The following objects can be composed by featuremonkey:
     - classes
     - modules
     - simple objects (str, int, ...)
-    - iterables (lists, tuples, sets, dicts, ...)
+    - iterables (str, lists, tuples, sets, dicts, ...)
     - etc...
 
 For all these types of objects there are new serialization methods required which are not
@@ -28,11 +31,13 @@ Therefore, custom serialization is required:
     - for classes, in most cases their __dict__ representation is enough
     - for modules maybe also recursively serialize its __dict__ ? -> tbd
 """
+
 import collections
 import inspect
-
 import marshal
+import six
 
+from io import IOBase
 
 from .helper import (
     is_class_method,
@@ -118,11 +123,8 @@ def _serialize_iterable(obj):
     :param obj:
     :return:
     """
-    if isinstance(obj, tuple):
+    if isinstance(obj, (tuple, set)):
         # make a tuple assignable by casting it to list
-        obj = list(obj)
-    if isinstance(obj, set):
-        # make a set assignable by casting it to list
         obj = list(obj)
     for item in obj:
         obj[obj.index(item)] = serialize_obj(item)
@@ -141,13 +143,15 @@ def serialize_obj(obj):
         obj = _serialize_callable(obj)
     elif inspect.ismodule(obj):
         obj = _serialize_module(obj)
-    elif isinstance(obj, collections.Iterable) and not isinstance(obj, (str, dict, unicode, file)):
+    elif isinstance(obj, collections.Iterable) and not isinstance(obj, (str, dict, six.text_type, IOBase)):
+        # "six.text_type" is "unicode" in py2 and "str" in py3
+        # "IOBase" is the same check as for "file" in py2, but compatible for both
         obj = _serialize_iterable(obj)
     elif isinstance(obj, dict):
         obj = _serialize_dict(obj)
     elif hasattr(obj, '__dict__'):
         obj = _serialize_dict(obj.__dict__)
-    elif not isinstance(obj, (str, unicode)):
+    elif not isinstance(obj, (str, six.text_type)):
         obj = repr(obj)
     return obj
 
