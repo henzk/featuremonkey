@@ -141,7 +141,7 @@ Example::
         refine_a = 7
 
         #refine name ``b`` with value ``6``
-        def introduce_b(self, original):
+        def refine_b(self, original):
             return 6
 
         #refine method ``foo`` to make it return double the value of before.
