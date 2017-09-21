@@ -4,7 +4,6 @@ composer.py - feature oriented composition of python code
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-from featuremonkey.tracing.logger import NullOperationLogger
 import inspect
 import importlib
 import os
@@ -15,7 +14,7 @@ from .helpers import (_delegate, _is_class_instance, _get_role_name,
 
 
 def get_features_from_equation_file(filename):
-    '''
+    """
     returns list of feature names read from equation file given
     by ``filename``.
 
@@ -29,8 +28,9 @@ def get_features_from_equation_file(filename):
 
         myfeature
         anotherfeature
-
-    '''
+    :param filename:
+    :return:
+    """
     features = []
     for line in open(filename):
         line = line.split('#')[0].strip()
@@ -39,12 +39,13 @@ def get_features_from_equation_file(filename):
     return features
 
 
-class CompositionError(Exception): pass
+class CompositionError(Exception):
+    pass
 
 
 # prevent errors; in case there is no operation logger defined, use the NullOperationLogger
 if not os.environ.get('COMPOSITION_TRACER'):
-    os.environ['COMPOSITION_TRACER'] = NullOperationLogger.__module__ + '.' + NullOperationLogger.__name__
+    os.environ['COMPOSITION_TRACER'] = 'logger.NullOperationLogger'
 
 
 class Composer(object):
