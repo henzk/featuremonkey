@@ -4,13 +4,16 @@ composer.py - feature oriented composition of python code
 
 from __future__ import absolute_import, print_function, unicode_literals
 
-import inspect
 import importlib
+import inspect
 import os
 import sys
+
+from .helpers import (
+    _delegate, _is_class_instance, _get_role_name,
+    _get_base_name, _get_method, _extract_classmethod, _extract_staticmethod
+)
 from .importhooks import LazyComposerHook
-from .helpers import (_delegate, _is_class_instance, _get_role_name,
-    _get_base_name, _get_method, _extract_classmethod, _extract_staticmethod)
 
 
 def get_features_from_equation_file(filename):
@@ -43,17 +46,38 @@ class CompositionError(Exception):
     pass
 
 
+class LoggerDoesNotExist(Exception):
+    message = """The logger ({logger}) set in the COMPOSITION_TRACER environment variable does not exist.\n
+              Make sure the entered module/class exists, has the correct format ("path.to.module.LoggerClass")\n
+              Unset the variable to use default logger (NullOperationLogger)."""
+
+
 # prevent errors; in case there is no operation logger defined, use the NullOperationLogger
 if not os.environ.get('COMPOSITION_TRACER'):
-    os.environ['COMPOSITION_TRACER'] = 'logger.NullOperationLogger'
+    os.environ['COMPOSITION_TRACER'] = 'featuremonkey.tracing.logger.NullOperationLogger'
 
 
 class Composer(object):
 
     def __init__(self):
-        klass_module = importlib.import_module('.'.join(os.environ['COMPOSITION_TRACER'].split('.')[:-1]))
-        klass = getattr(klass_module, os.environ['COMPOSITION_TRACER'].split('.')[-1])
-        self.composition_tracer = klass()
+        logger_class = self._get_logger_class()
+        if logger_class:
+            self.composition_tracer = logger_class()
+        else:
+            raise LoggerDoesNotExist(LoggerDoesNotExist.message.format(
+                logger=os.environ['COMPOSITION_TRACER']
+            ))
+
+    def _get_logger_class(self):
+        logger_module = '.'.join(os.environ['COMPOSITION_TRACER'].split('.')[:-1])
+        logger_class_name = os.environ['COMPOSITION_TRACER'].split('.')[-1]
+        try:
+            class_module = importlib.import_module(logger_module)
+        except ImportError:
+            raise LoggerDoesNotExist(LoggerDoesNotExist.message.format(
+                logger=os.environ['COMPOSITION_TRACER']
+            ))
+        return getattr(class_module, logger_class_name, None)
 
     def _introduce(self, role, target_attrname, transformation, base):
         if hasattr(base, target_attrname):
