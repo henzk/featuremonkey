@@ -1,6 +1,12 @@
-'''private helpers'''
+"""
+private helpers
+"""
+
 import inspect
+import sys
+
 from functools import wraps
+
 
 def _delegate(to):
     @wraps(to)
@@ -32,7 +38,6 @@ def _get_method(method, base):
         return method
 
 
-import sys
 if sys.version_info < (2, 7):
 
     def _extract_staticmethod(m):

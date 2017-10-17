@@ -12,7 +12,7 @@ __author__ = 'Hendrik Speidel <hendrik@schnapptack.de>'
 add_import_guard = ImportGuardHook.add
 remove_import_guard = ImportGuardHook.remove
 
-#setup default composer and provide access to its methods at the module level
+# setup default composer and provide access to its methods at the module level
 _default_composer = Composer()
 select = _default_composer.select
 select_equation = _default_composer.select_equation
