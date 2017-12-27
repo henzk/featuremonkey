@@ -19,7 +19,7 @@ class ImportHookBase(object):
         to prepend the hook instead of appending it or
         to install the hook in sys.path_hooks instead
         '''
-        sys.meta_path.append(cls._hook)
+        sys.meta_path.insert(0, cls._hook)
 
     @classmethod
     def _install(cls):
