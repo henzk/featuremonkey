@@ -1,17 +1,12 @@
 #! /usr/bin/env python
 import os
 
-DEPS = []
+DEPS = ['six']
 
 try:
     import importlib
 except ImportError:
     DEPS.append('importlib')
-
-try:
-    import six
-except ImportError:
-    DEPS.append('six')
 
 try:
     from setuptools import setup
