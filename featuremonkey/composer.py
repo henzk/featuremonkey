@@ -69,7 +69,8 @@ class Composer(object):
             ))
 
     def _get_logger_class(self):
-        logger_module = '.'.join(os.environ['COMPOSITION_TRACER'].split('.')[:-1])
+        logger_module = '.'.join(
+            os.environ['COMPOSITION_TRACER'].split('.')[:-1])
         logger_class_name = os.environ['COMPOSITION_TRACER'].split('.')[-1]
         try:
             class_module = importlib.import_module(logger_module)
@@ -95,7 +96,8 @@ class Composer(object):
             role=_get_role_name(role),
             base=_get_base_name(base),
         )
-        self.composition_tracer.log(operation=operation, old_value=getattr(base, target_attrname, None))
+        self.composition_tracer.log(
+            operation=operation, old_value=getattr(base, target_attrname, None))
         if callable(transformation):
             evaluated_trans = transformation()
             if not callable(evaluated_trans):
@@ -113,7 +115,8 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        self.composition_tracer.log_new_value(operation=operation, new_value=new_value)
+        self.composition_tracer.log_new_value(
+            operation=operation, new_value=new_value)
 
     def _refine(self, role, target_attrname, transformation, base):
         if not hasattr(base, target_attrname):
@@ -133,7 +136,8 @@ class Composer(object):
         )
         # In some cases the attribute refinement causes the old value to change, too (reference).
         # Therefore, the value needs to be tracked (and so copied) before the refinement
-        self.composition_tracer.log(operation=operation, old_value=getattr(base, target_attrname, None))
+        self.composition_tracer.log(
+            operation=operation, old_value=getattr(base, target_attrname, None))
         if callable(transformation):
             baseattr = getattr(base, target_attrname)
             if callable(baseattr):
@@ -149,7 +153,8 @@ class Composer(object):
         else:
             setattr(base, target_attrname, transformation)
             new_value = transformation
-        self.composition_tracer.log_new_value(operation=operation, new_value=new_value)
+        self.composition_tracer.log_new_value(
+            operation=operation, new_value=new_value)
 
     @staticmethod
     def _create_refinement_wrapper(transformation, baseattr, base, target_attrname):
@@ -161,7 +166,7 @@ class Composer(object):
         has no docstring set.
         """
         # first step: extract the original
-        special_refinement_type=None
+        special_refinement_type = None
         instance_refinement = _is_class_instance(base)
 
         if instance_refinement:
@@ -268,7 +273,7 @@ class Composer(object):
         if module_name in sys.modules:
             raise CompositionError(
                 'compose_later call after module has been imported: '
-                 + module_name
+                + module_name
             )
         LazyComposerHook.add(module_name, things[:-1], self)
 
@@ -296,7 +301,7 @@ class Composer(object):
                             feature_name
                         )
                     )
-                args, varargs, keywords, defaults = inspect.getargspec(
+                args, varargs, keywords, defaults, _, _, _ = inspect.getfullargspec(
                     feature_spec_module.select
                 )
                 if varargs or keywords or defaults or len(args) != 1:

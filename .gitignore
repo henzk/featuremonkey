@@ -40,3 +40,9 @@ nosetests.xml
 
 #narf
 .svn
+
+# Visual Studio Code files
+.vscode/
+
+# Virtual environment
+venv/
