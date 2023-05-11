@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import unittest
-from featuremonkey.test.composer import *
+from featuremonkey3.test.test_composer import *
 
 def suite():
     return unittest.TestSuite([

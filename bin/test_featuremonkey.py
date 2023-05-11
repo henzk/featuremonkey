@@ -1,4 +1,4 @@
-from featuremonkey import test
+from featuremonkey3 import test
 import sys
 
 if __name__ == '__main__':

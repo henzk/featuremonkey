@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "featuremonkey"
-version = "0.3.1"
-description = "FOP for Python"
-authors = ["Hendrik Speidel <hendrik@schnapptack.de>"]
+name = "featuremonkey3"
+version = "0.1.0"
+description = "Python 3.11 compatible fork of featuremonkey, a Python FOP framework first developed by Hendrik Speidel."
+authors = ["Adrian Wong <adrianwong227@gmail.com>"]
 license = "MIT License"
-readme = "README.md"
+readme = "README.rst"
 
 [tool.poetry.dependencies]
 python = "^3.4"

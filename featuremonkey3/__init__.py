@@ -1,9 +1,9 @@
 from __future__ import absolute_import
-from featuremonkey.composer import (Composer,
+from featuremonkey3.composer import (Composer,
     get_features_from_equation_file,
     CompositionError)
 
-from featuremonkey.importhooks import ImportGuardHook
+from featuremonkey3.importhooks import ImportGuardHook
 
 __version__ = '0.3.1'
 __author__ = 'Hendrik Speidel <hendrik@schnapptack.de>'

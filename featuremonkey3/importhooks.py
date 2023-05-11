@@ -41,7 +41,7 @@ class ImportHookBase(object):
 
 
 def load_fsts(fst_list):
-    from featuremonkey import CompositionError
+    from featuremonkey3 import CompositionError
     result = []
     for elem in fst_list:
         if isinstance(elem, str):

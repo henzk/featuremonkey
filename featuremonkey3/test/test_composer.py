@@ -1,7 +1,7 @@
 from __future__ import absolute_import
-from featuremonkey import compose, compose_later
-from featuremonkey.test.mock import composer_mocks as mocks
-from featuremonkey.test.mock import testmodule1, testpackage1
+from featuremonkey3 import compose, compose_later
+from featuremonkey3.test.mock import composer_mocks as mocks
+from featuremonkey3.test.mock import testmodule1, testpackage1
 import unittest
 import sys
 
@@ -238,6 +238,24 @@ class TestModuleComposition(unittest.TestCase):
         self.assertEquals(123, testpackage1.submodule.a)
         self.assertEquals(5, testpackage1.submodule.afunction(1, 5))
 
+    def test_submodule_function_refinement(self):
+
+        class SubmoduleRefinement:
+
+            def refine_add_one(self, original):
+
+                def add_one(x):
+                    return original(x) + 1
+
+                return add_one
+
+        class PackageDeepRefinement:
+            child_submodule = SubmoduleRefinement
+
+        self.assertEquals(2, testpackage1.submodule.add_one(1))
+        compose(PackageDeepRefinement(), testpackage1)
+        self.assertEquals(3, testpackage1.submodule.add_one(1))
+
     def test_compose_later(self):
 
         class LateModuleRefinement(object):
@@ -251,9 +269,9 @@ class TestModuleComposition(unittest.TestCase):
 
                 return afunction
 
-        self.assertEquals(True, 'featuremonkey.test.mock.testmodule2' not in sys.modules)
-        compose_later(LateModuleRefinement(), 'featuremonkey.test.mock.testmodule2')
-        from featuremonkey.test.mock import testmodule2
+        self.assertEquals(True, 'featuremonkey3.test.mock.testmodule2' not in sys.modules)
+        compose_later(LateModuleRefinement(), 'featuremonkey3.test.mock.testmodule2')
+        from featuremonkey3.test.mock import testmodule2
         self.assertEquals(123, testmodule2.a)
 
     def test_compose_later_composition_order(self):
@@ -280,10 +298,10 @@ class TestModuleComposition(unittest.TestCase):
 
                 return afunction
 
-        self.assertEquals(True, 'featuremonkey.test.mock.testmodule3' not in sys.modules)
-        compose_later(LateModuleRefinementA(), 'featuremonkey.test.mock.testmodule3')
-        compose_later(LateModuleRefinementB(), 'featuremonkey.test.mock.testmodule3')
-        from featuremonkey.test.mock import testmodule3
+        self.assertEquals(True, 'featuremonkey3.test.mock.testmodule3' not in sys.modules)
+        compose_later(LateModuleRefinementA(), 'featuremonkey3.test.mock.testmodule3')
+        compose_later(LateModuleRefinementB(), 'featuremonkey3.test.mock.testmodule3')
+        from featuremonkey3.test.mock import testmodule3
         self.assertEquals(456, testmodule3.a)
         self.assertEquals(5, testmodule3.afunction(2, 2))
 

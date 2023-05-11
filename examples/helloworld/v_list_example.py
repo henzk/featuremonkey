@@ -1,7 +1,7 @@
 import hello.main
-import featuremonkey
+import featuremonkey3
 
-featuremonkey.select(
+featuremonkey3.select(
     'hello',
     'beautiful',
     'wonderful',

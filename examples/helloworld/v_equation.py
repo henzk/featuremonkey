@@ -1,8 +1,8 @@
 import hello.main
-import featuremonkey
+import featuremonkey3
 
 import os
 
-featuremonkey.select_equation(os.path.join(
+featuremonkey3.select_equation(os.path.join(
     os.path.dirname(__file__), 'max_product.equation'))
 hello.main.hello()
