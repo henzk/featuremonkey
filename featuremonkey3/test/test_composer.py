@@ -1,149 +1,141 @@
-from __future__ import absolute_import
+# from __future__ import absolute_import
+from importlib import reload
 from featuremonkey3 import compose, compose_later
 from featuremonkey3.test.mock import composer_mocks as mocks
 from featuremonkey3.test.mock import testmodule1, testpackage1
-import unittest
+import pytest
 import sys
 
-try:
-    #python3
-    from imp import reload
-except ImportError:
-    #python2
-    pass
+@pytest.fixture
+def reload_mocks():
+    reload(mocks)
 
-class TestObjectComposition(unittest.TestCase):
 
-    def setUp(self):
-        pass
+class TestObjectComposition:
 
-    def test_noparam(self):
-        self.assertRaises(Exception, compose)
+    def test_noparam(self, reload_mocks):
+        with pytest.raises(Exception):
+            compose()
 
-    def test_singleparam(self):
-        self.assertEquals(self, compose(self))
+    def test_singleparam(self, reload_mocks):
+        assert self == compose(self)
 
-    def test_idendity(self):
+    def test_idendity(self, reload_mocks):
         instance = mocks.Base()
         composition = compose(mocks.MemberIntroduction(), instance)
-        self.assertEquals(instance, composition)
+        assert instance == composition
 
-    def test_member_introduction(self):
+    def test_member_introduction(self, reload_mocks):
         instance = mocks.Base()
         composition = compose(mocks.MemberIntroduction(), instance)
-        self.assertEquals(8, composition.base_prop)
-        self.assertEquals(1, composition.a)
+        assert composition.base_prop == 8
+        assert composition.a == 1
 
-    def test_existing_member_introduction(self):
+    def test_existing_member_introduction(self, reload_mocks):
         instance = mocks.Base()
-        self.assertRaises(Exception, compose, mocks.ExistingMemberIntroduction(), instance)
+        with pytest.raises(Exception):
+            compose(mocks.ExistingMemberIntroduction(), instance)
 
-    def test_method_introduction(self):
+    def test_method_introduction(self, reload_mocks):
         instance = mocks.Base()
         composition = compose(mocks.MethodIntroduction(), instance)
-        self.assertEquals(8, composition.base_prop)
-        self.assertTrue(composition.method())
+        assert composition.base_prop == 8
+        assert composition.method()
 
-    def test_method_refinement(self):
+    def test_method_refinement(self, reload_mocks):
         instance = mocks.Base()
         composition = compose(mocks.MethodRefinement(), instance)
-        self.assertEquals('Hellorefined', composition.base_method('Hello'))
+        assert composition.base_method("Hello") == "Hellorefined"
 
-    def test_staticmethod(self):
+    def test_staticmethod(self, reload_mocks):
         instance = mocks.StaticBase()
         instance2 = mocks.StaticBase()
-        self.assertEquals('Hello', instance.base_method('Hello'))
+        assert instance.base_method("Hello") == "Hello"
         composition = compose(mocks.StaticMethodRefinement(), instance)
-        self.assertEquals('Hellorefined', composition.base_method('Hello'))
-        self.assertEquals('Hello', instance2.base_method('Hello'))
+        assert composition.base_method("Hello") == "Hellorefined"
+        assert instance2.base_method("Hello") == "Hello"
 
-    def test_classmethod(self):
+    def test_classmethod(self, reload_mocks):
         instance = mocks.ClassMethodBase()
-        self.assertEquals('Hello', instance.base_method('Hello'))
+        assert instance.base_method("Hello") == "Hello"
         composition = compose(mocks.ClassMethodRefinement(), instance)
-        self.assertEquals('Hellorefined', composition.base_method('Hello'))
+        assert composition.base_method("Hello") == "Hellorefined"
 
+class TestClassComposition:
 
-class TestClassComposition(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        reload(mocks)
-
-    def test_idendity(self):
+    def test_idendity(self, reload_mocks):
         clss = mocks.Base
         composition = compose(mocks.MemberIntroduction, clss)
-        self.assertEquals(clss, composition)
+        assert composition == clss
 
-    def test_member_introduction(self):
+    def test_membr_introduction(self, reload_mocks):
         compose(mocks.MemberIntroduction, mocks.Base)
-        self.assertEquals(8, mocks.Base.base_prop)
-        self.assertEquals(1, mocks.Base.a)
+        assert mocks.Base.base_prop == 8
+        assert mocks.Base.a == 1
 
-    def test_existing_member_introduction(self):
-        self.assertRaises(Exception, compose, mocks.ExistingMemberIntroduction, mocks.Base)
+    def test_existing_member_introduction(self, reload_mocks):
+        with pytest.raises(Exception):
+            compose(mocks.ExistingMemberIntroduction, mocks.Base)
 
-    def test_method_introduction(self):
+    def test_method_introduction(self, reload_mocks):
         compose(mocks.MethodIntroduction(), mocks.Base)
-        self.assertEquals(8, mocks.Base.base_prop)
-        self.assertTrue(mocks.Base().method())
+        assert mocks.Base.base_prop == 8
+        assert mocks.Base().method()
 
-    def test_method_refinement(self):
+    def test_method_refinement(self, reload_mocks):
         compose(mocks.MethodRefinement2(), mocks.Base)
-        self.assertEquals('Hellorefined', mocks.Base().base_method('Hello'))
+        assert mocks.Base().base_method("Hello") == "Hellorefined"
 
-    def test_staticmethod(self):
-        self.assertEquals('Hello', mocks.StaticBase.base_method('Hello'))
-        self.assertEquals('Hello', mocks.StaticBase().base_method('Hello'))
+    def test_staticmethod(self, reload_mocks):
+        assert mocks.StaticBase.base_method("Hello") == "Hello"
+        assert mocks.StaticBase().base_method("Hello") == "Hello"
         compose(mocks.StaticMethodRefinement(), mocks.StaticBase)
-        self.assertEquals('Hellorefined', mocks.StaticBase.base_method('Hello'))
-        self.assertEquals('Hellorefined', mocks.StaticBase().base_method('Hello'))
+        assert mocks.StaticBase.base_method("Hello") == "Hellorefined"
+        assert mocks.StaticBase().base_method("Hello") == "Hellorefined"
 
-    def test_classmethod(self):
-        self.assertEquals('Hello', mocks.ClassMethodBase.base_method('Hello'))
-        self.assertEquals('Hello', mocks.ClassMethodBase().base_method('Hello'))
+    def test_classmethod(self, reload_mocks):
+        assert mocks.ClassMethodBase.base_method("Hello") == "Hello"
+        assert mocks.ClassMethodBase().base_method("Hello") == "Hello"
         compose(mocks.ClassMethodRefinement(), mocks.ClassMethodBase)
-        self.assertEquals('Hellorefined', mocks.ClassMethodBase.base_method('Hello'))
-        self.assertEquals('Hellorefined', mocks.ClassMethodBase().base_method('Hello'))
+        assert mocks.ClassMethodBase.base_method("Hello") == "Hellorefined"
+        assert mocks.ClassMethodBase().base_method("Hello") == "Hellorefined"
 
-class TestModuleComposition(unittest.TestCase):
+@pytest.fixture
+def reload_modules():
+    if hasattr(testmodule1, "module_introduction"):
+        del testmodule1.module_introduction
 
-    def setUp(self):
-        pass
+    reload(testmodule1)
+    reload(testpackage1)
 
-    def tearDown(self):
-        if hasattr(testmodule1, 'module_introduction'):
-            del testmodule1.module_introduction
-        reload(testmodule1)
-        reload(testpackage1)
+class TestModuleComposition:
 
-    def test_reloading_clears_composition(self):
+    def test_reloading_clears_composition(self, reload_modules):
 
-        self.assertEquals(False, hasattr(testmodule1, 'module_introduction'))
+        assert not hasattr(testmodule1, "module_introduction")
 
-    def test_member_introduction(self):
+    def test_member_introduction(self, reload_modules):
 
         class ModuleIntroduction(object):
 
             introduce_module_introduction = 478
 
         compose(ModuleIntroduction(), testmodule1)
-        self.assertEquals(True, hasattr(testmodule1, 'module_introduction'))
-        self.assertEquals(478, testmodule1.module_introduction)
+        assert hasattr(testmodule1, "module_introduction")
+        assert testmodule1.module_introduction == 478
 
-    def test_member_refinement(self):
+    def test_member_refinement(self, reload_modules):
 
         class ModuleRefinement(object):
 
             refine_attr_in_module = 234
 
-        self.assertEquals(123, testmodule1.attr_in_module)
+        assert testmodule1.attr_in_module == 123
         compose(ModuleRefinement(), testmodule1)
-        self.assertEquals(234, testmodule1.attr_in_module)
 
-    def test_function_introduction(self):
+        assert testmodule1.attr_in_module == 234
+
+    def test_function_introduction(self, reload_modules):
 
         class ModuleFunctionIntroduction(object):
 
@@ -154,11 +146,12 @@ class TestModuleComposition(unittest.TestCase):
 
                 return my_function
 
-        self.assertEquals(False, hasattr(testmodule1, 'my_function'))
+        assert not hasattr(testmodule1, "my_function")
         compose(ModuleFunctionIntroduction(), testmodule1)
-        self.assertEquals(0, testmodule1.my_function(3, 3))
 
-    def test_function_refinement(self):
+        assert testmodule1.my_function(3, 3) == 0
+
+    def test_function_refinement(self, reload_modules):
 
         class ModuleFunctionRefinement(object):
 
@@ -169,11 +162,12 @@ class TestModuleComposition(unittest.TestCase):
 
                 return func_in_module
 
-        self.assertEquals(2, testmodule1.func_in_module(1, 1))
+        assert testmodule1.func_in_module(1, 1) == 2
         compose(ModuleFunctionRefinement(), testmodule1)
-        self.assertEquals(4, testmodule1.func_in_module(1, 1))
 
-    def test_tuple_refinement(self):
+        assert testmodule1.func_in_module(1, 1) == 4
+
+    def test_tuple_refinement(self, reload_modules):
 
         class ModuleTupleRefinement(object):
 
@@ -185,12 +179,13 @@ class TestModuleComposition(unittest.TestCase):
 
                 return refinement
 
-        self.assertEquals(3, len(testmodule1.tuple_in_module))
+        assert len(testmodule1.tuple_in_module) == 3
         compose(ModuleTupleRefinement(), testmodule1)
-        self.assertEquals(4, len(testmodule1.tuple_in_module))
-        self.assertEquals(4, testmodule1.tuple_in_module[-1])
 
-    def test_class_deep_refinement(self):
+        assert len(testmodule1.tuple_in_module) == 4
+        assert testmodule1.tuple_in_module[-1] == 4
+
+    def test_class_deep_refinement(self, reload_modules):
 
         class ClassRefinement(object):
 
@@ -208,14 +203,15 @@ class TestModuleComposition(unittest.TestCase):
 
             child_ClassInModule = ClassRefinement
 
-        self.assertEquals(False, hasattr(testmodule1.ClassInModule, 'a'))
-        self.assertEquals(2, testmodule1.ClassInModule().plus(1, 1))
-        self.assertEquals(True, testmodule1.ClassInModule().attr_in_class)
+        assert not hasattr(testmodule1.ClassInModule, "a")
+        assert testmodule1.ClassInModule().plus(1, 1) == 2
+        assert testmodule1.ClassInModule().attr_in_class
         compose(ModuleDeepRefinement(), testmodule1)
-        self.assertEquals(False, testmodule1.ClassInModule().attr_in_class)
-        self.assertEquals(4, testmodule1.ClassInModule().plus(1, 1))
 
-    def test_submodule_deep_refinement(self):
+        assert not testmodule1.ClassInModule().attr_in_class
+        assert testmodule1.ClassInModule().plus(1, 1) == 4
+
+    def test_submodule_deep_refinement(self, reload_modules):
 
         class SubmoduleRefinement(object):
 
@@ -233,12 +229,13 @@ class TestModuleComposition(unittest.TestCase):
 
             child_submodule = SubmoduleRefinement
 
-        self.assertEquals(False, hasattr(testpackage1.submodule, 'a'))
+        assert not hasattr(testpackage1.submodule, "a")
         compose(PackageDeepRefinement(), testpackage1)
-        self.assertEquals(123, testpackage1.submodule.a)
-        self.assertEquals(5, testpackage1.submodule.afunction(1, 5))
 
-    def test_submodule_function_refinement(self):
+        assert testpackage1.submodule.a == 123
+        assert testpackage1.submodule.afunction(1, 5) == 5
+
+    def test_submodule_function_refinement(self, reload_modules):
 
         class SubmoduleRefinement:
 
@@ -252,11 +249,12 @@ class TestModuleComposition(unittest.TestCase):
         class PackageDeepRefinement:
             child_submodule = SubmoduleRefinement
 
-        self.assertEquals(2, testpackage1.submodule.add_one(1))
+        assert testpackage1.submodule.add_one(1) == 2
         compose(PackageDeepRefinement(), testpackage1)
-        self.assertEquals(3, testpackage1.submodule.add_one(1))
 
-    def test_compose_later(self):
+        assert testpackage1.submodule.add_one(1) == 3
+
+    def test_compose_later(self, reload_modules):
 
         class LateModuleRefinement(object):
 
@@ -269,12 +267,13 @@ class TestModuleComposition(unittest.TestCase):
 
                 return afunction
 
-        self.assertEquals(True, 'featuremonkey3.test.mock.testmodule2' not in sys.modules)
+        assert 'featuremonkey3.test.mock.testmodule2' not in sys.modules
         compose_later(LateModuleRefinement(), 'featuremonkey3.test.mock.testmodule2')
         from featuremonkey3.test.mock import testmodule2
-        self.assertEquals(123, testmodule2.a)
 
-    def test_compose_later_composition_order(self):
+        assert testmodule2.a == 123
+
+    def test_compose_later_composition_order(self, reload_modules):
 
         class LateModuleRefinementA(object):
 
@@ -298,12 +297,10 @@ class TestModuleComposition(unittest.TestCase):
 
                 return afunction
 
-        self.assertEquals(True, 'featuremonkey3.test.mock.testmodule3' not in sys.modules)
+        assert "featuremonkey3.test.mock.testmodule3" not in sys.modules
         compose_later(LateModuleRefinementA(), 'featuremonkey3.test.mock.testmodule3')
         compose_later(LateModuleRefinementB(), 'featuremonkey3.test.mock.testmodule3')
         from featuremonkey3.test.mock import testmodule3
-        self.assertEquals(456, testmodule3.a)
-        self.assertEquals(5, testmodule3.afunction(2, 2))
 
-if __name__ == '__main__':
-    unittest.main()
+        assert testmodule3.a == 456
+        assert testmodule3.afunction(2, 2) == 5

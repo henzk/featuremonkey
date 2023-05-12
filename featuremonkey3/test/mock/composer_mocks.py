@@ -1,4 +1,4 @@
-class Base(object):
+class Base:
     
     base_prop = 8
     
@@ -6,13 +6,13 @@ class Base(object):
         return a_str
 
 
-class MemberIntroduction(object):
+class MemberIntroduction:
     introduce_a = 1
 
-class ExistingMemberIntroduction(object):
+class ExistingMemberIntroduction:
     introduce_base_prop = 1
 
-class MethodIntroduction(object):
+class MethodIntroduction:
 
     def introduce_method(self):
         
@@ -21,7 +21,7 @@ class MethodIntroduction(object):
         
         return method
 
-class MethodRefinement(object):
+class MethodRefinement:
     
     def refine_base_method(self, original):
         
@@ -31,7 +31,7 @@ class MethodRefinement(object):
         return base_method
 
 
-class MethodRefinement2(object):
+class MethodRefinement2:
     
     def refine_base_method(self, original):
         
@@ -41,14 +41,14 @@ class MethodRefinement2(object):
         return base_method
 
 
-class StaticBase(object):
+class StaticBase:
 
     @staticmethod
     def base_method(a_str):
         return a_str
 
 
-class StaticMethodRefinement(object):
+class StaticMethodRefinement:
 
     def refine_base_method(self, original):
 
@@ -58,14 +58,14 @@ class StaticMethodRefinement(object):
         return base_method
 
 
-class ClassMethodBase(object):
+class ClassMethodBase:
 
     @classmethod
     def base_method(cls, a_str):
         return a_str
 
 
-class ClassMethodRefinement(object):
+class ClassMethodRefinement:
 
     def refine_base_method(self, original):
 

@@ -54,7 +54,7 @@ class LoggerDoesNotExist(Exception):
 
 # prevent errors; in case there is no operation logger defined, use the NullOperationLogger
 if not os.environ.get('COMPOSITION_TRACER'):
-    os.environ['COMPOSITION_TRACER'] = 'featuremonkey.tracing.logger.NullOperationLogger'
+    os.environ['COMPOSITION_TRACER'] = 'featuremonkey3.tracing.logger.NullOperationLogger'
 
 
 class Composer(object):

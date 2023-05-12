@@ -71,7 +71,7 @@ class LazyComposerHook(ImportHookBase):
         add a couple of fsts to be superimposed on the module given
         by module_name as soon as it is imported.
 
-        internal - use featuremonkey.compose_later
+        internal - use featuremonkey3.compose_later
         '''
         cls._to_compose.setdefault(module_name, [])
         cls._to_compose[module_name].append(
@@ -117,8 +117,8 @@ class ImportGuardHook(ImportHookBase):
     program.
 
     The existance of the import hook is considered an implementation detail.
-    The public API to import guards are ``featuremonkey.add_import_guard``
-    and ``featuremonkey.remove_import_guard``.
+    The public API to import guards are ``featuremonkey3.add_import_guard``
+    and ``featuremonkey3.remove_import_guard``.
     """
     _guards = dict()
     _num_entries = 0
