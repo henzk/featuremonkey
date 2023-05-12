@@ -1,4 +1,0 @@
-autopep8==2.0.1
--e git+https://github.com/N00bAdrian/featuremonkey.git@460d770d19cb9c1b4ffe3d394a01f363f6ec4368#egg=featuremonkey
-pycodestyle==2.10.0
-six==1.16.0

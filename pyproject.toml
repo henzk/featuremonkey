@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "featuremonkey3"
-version = "0.1.0"
+version = "0.1.1"
 description = "Python 3.11 compatible fork of featuremonkey, a Python FOP framework first developed by Hendrik Speidel."
 authors = ["Adrian Wong <adrianwong227@gmail.com>"]
 license = "MIT License"
